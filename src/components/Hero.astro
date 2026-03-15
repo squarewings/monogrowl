@@ -1,0 +1,122 @@
+---
+interface Props {
+  label: string;
+  title: string;
+  subtitle: string;
+  backgroundImage: string;
+}
+
+const { label, title, subtitle, backgroundImage } = Astro.props;
+---
+
+<section class="hero">
+  <div class="hero-bg" style={`background-image: url('${backgroundImage}')`}>
+  </div>
+  <img class="hero-img" src={backgroundImage} alt="" />
+  <div class="hero-content">
+    <p class="hero-label">{label}</p>
+    <h1 class="hero-title" set:html={title} />
+    <p class="hero-sub">{subtitle}</p>
+  </div>
+</section>
+
+<style lang="scss">
+  @use "../styles/global.scss" as *;
+
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 2.5rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center top;
+    filter: brightness(0.35) saturate(0.6);
+    z-index: 0;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 30%,
+        rgba(8, 8, 8, 0.6) 65%,
+        $bg 100%
+      );
+    }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+  }
+
+  .hero-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: $accent;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-title {
+    font-family: var(--font-display), sans-serif;
+    font-size: clamp(3.5rem, 16vw, 14rem);
+    font-weight: 900;
+    line-height: 87%;
+    letter-spacing: -0.032em;
+    text-transform: uppercase;
+    color: #fff;
+    text-box: cap alphabetic;
+  }
+
+  .hero-sub {
+    margin-top: 1.5em;
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: $muted;
+    // letter-spacing: 0.05em;
+  }
+
+  .hero-img {
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      min-height: auto;
+      padding: 0;
+    }
+
+    .hero-bg {
+      display: none;
+    }
+
+    .hero-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      filter: brightness(0.35) saturate(0.6);
+      mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        #000 50%,
+        transparent 100%
+      );
+    }
+
+    .hero-content {
+      padding: 0 1.5rem 2rem;
+      margin-top: -4rem;
+    }
+  }
+</style>

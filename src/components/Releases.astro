@@ -1,0 +1,44 @@
+---
+import ReleaseCard from './ReleaseCard.astro';
+
+const releases = [
+  {
+    title: 'Overflown',
+    type: 'Single',
+    year: '2024',
+    image: '/images/overflown.jpg',
+    listenUrl: 'https://open.spotify.com/album/2vgmjUCApm3U96bzqMrLVg',
+  },
+  {
+    title: 'Monogrowl',
+    type: 'Single',
+    year: '2018',
+    image: '/images/monogrowl.jpg',
+    listenUrl: 'https://open.spotify.com/album/4I14AwWBSp4KhHPtqqOmKR',
+  },
+];
+---
+
+<section class="music-section">
+  <p class="section-label">Releases</p>
+  <div class="releases-grid">
+    {releases.map((release) => (
+      <ReleaseCard {...release} />
+    ))}
+  </div>
+</section>
+
+<style lang="scss">
+  .music-section {
+    padding: 3rem 2.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .releases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+</style>

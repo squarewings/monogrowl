@@ -1,0 +1,25 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import Bio from "../components/Bio.astro";
+import PlatformLinks from "../components/PlatformLinks.astro";
+import Releases from "../components/Releases.astro";
+import SpotifyEmbed from "../components/SpotifyEmbed.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Monogrowl | Electronic Music from Sheffield & Brooklyn">
+  <Hero
+    label="Artist"
+    title="Mono<br>growl"
+    subtitle="Music  ·  Sheffield | Brooklyn"
+    backgroundImage="/images/monogrowl.jpg"
+  />
+  <Bio
+    text="“Bass, beats, beers and brunch.<br>Southerner in Sheffield making noise with synthesizers.”"
+  />
+  <PlatformLinks />
+  <Releases />
+  <SpotifyEmbed artistId="5ESygfI91sh8X4emLEeJ40" />
+  <Footer />
+</Layout>

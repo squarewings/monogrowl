@@ -1,0 +1,32 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<section class="bio-section">
+  <p class="bio-text" set:html={text} />
+</section>
+
+<style lang="scss">
+  @use '../styles/global.scss' as *;
+
+  .bio-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2.5rem 0;
+  }
+
+  .bio-text {
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    font-weight: 300;
+    line-height: 1.5;
+    color: #aaa;
+    border-left: 2px solid $accent;
+    padding-left: 1.5rem;
+    font-style: italic;
+    letter-spacing: 0.01em;
+  }
+</style>
