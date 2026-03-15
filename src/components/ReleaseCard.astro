@@ -1,0 +1,85 @@
+---
+interface Props {
+  title: string;
+  year: string;
+  type: string;
+  image: string;
+  listenUrl: string;
+}
+
+const { title, year, type, image, listenUrl } = Astro.props;
+---
+
+<a class="release-card" href={listenUrl} target="_blank" rel="noopener">
+  <img src={image} alt={title} loading="lazy" />
+  <div class="release-info">
+    <p class="release-title">{title}</p>
+    <p class="release-year">{type} &middot; {year}</p>
+    <span class="release-listen">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>
+      Listen
+    </span>
+  </div>
+</a>
+
+<style lang="scss">
+  @use '../styles/global.scss' as *;
+
+  .release-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+
+    &:hover {
+      border-color: #333;
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 1;
+      display: block;
+      object-fit: cover;
+      filter: brightness(0.9);
+    }
+  }
+
+  .release-info {
+    padding: 1rem;
+  }
+
+  .release-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .release-year {
+    font-size: 0.75rem;
+    color: $muted;
+    margin-top: 0.25rem;
+  }
+
+  .release-listen {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $accent;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.15s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+</style>

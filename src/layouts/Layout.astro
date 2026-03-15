@@ -1,0 +1,83 @@
+---
+import { Font } from 'astro:assets';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+}
+
+const {
+  title,
+  description = "Monogrowl | bass, beats, beers and brunch. Electronic music from Sheffield and Brooklyn.",
+  ogImage = "/images/monogrowl.jpg",
+  canonicalUrl = Astro.url.href,
+} = Astro.props;
+
+const siteName = "Monogrowl";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta
+      name="keywords"
+      content="Monogrowl, electronic music, synthesizers, Sheffield, Brooklyn, bass, beats"
+    />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="music.musician" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content="en_GB" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/images/monogrowl.jpg" />
+
+    <!-- Structured Data -->
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "MusicGroup",
+        name: "Monogrowl",
+        description:
+          "Bass, beats, beers and brunch. Southerner in Sheffield making noise with synthesizers.",
+        genre: "Electronic",
+        image: "/images/monogrowl.jpg",
+        sameAs: [
+          "https://open.spotify.com/artist/5ESygfI91sh8X4emLEeJ40",
+          "https://music.apple.com/gb/album/overflown-single/1761736992",
+          "https://soundcloud.com/monogrowl",
+          "https://www.instagram.com/monogrowl/",
+        ],
+      })}
+    />
+    <!-- Fonts -->
+    <Font cssVariable="--font-body" preload />
+    <Font cssVariable="--font-display" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style lang="scss" is:global>
+  @use "../styles/global.scss";
+</style>

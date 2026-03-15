@@ -1,0 +1,66 @@
+// ── VARIABLES ──────────────────────────────────────────
+$bg: #080808;
+$surface: #111111;
+$border: #1e1e1e;
+$text: #e8e8e8;
+$muted: #555;
+$accent: #c8ff00;
+
+// ── RESET ──────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: $bg;
+  color: $text;
+  font-family: var(--font-body), sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+// ── SHARED ─────────────────────────────────────────────
+.section-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: $muted;
+  margin-bottom: 1.5rem;
+}
+
+// ── FOOTER ─────────────────────────────────────────────
+footer {
+  border-top: 1px solid $border;
+  padding: 2rem 2.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: $muted;
+  letter-spacing: 0.05em;
+}
+
+// ── RESPONSIVE ─────────────────────────────────────────
+@media (max-width: 600px) {
+  .hero {
+    padding: 1.5rem;
+  }
+
+  .links-section,
+  .music-section,
+  .embed-section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .platform-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
