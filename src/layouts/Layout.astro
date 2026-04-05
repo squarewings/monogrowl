@@ -16,6 +16,8 @@ const {
 } = Astro.props;
 
 const siteName = "Monogrowl";
+const siteUrl = "https://monogrowl.com";
+const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}`;
 ---
 
 <!doctype html>
@@ -34,7 +36,7 @@ const siteName = "Monogrowl";
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:image" content={absoluteOgImage} />
     <meta property="og:type" content="music.musician" />
     <meta property="og:site_name" content={siteName} />
     <meta property="og:url" content={canonicalUrl} />
@@ -44,11 +46,15 @@ const siteName = "Monogrowl";
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={absoluteOgImage} />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/images/monogrowl.jpg" />
+
+    <!-- Preconnect to external origins -->
+    <link rel="preconnect" href="https://plausible.io" crossorigin />
+    <link rel="dns-prefetch" href="https://plausible.io" />
 
     <!-- Analytics -->
     <script defer data-domain="monogrowl.com" src="https://plausible.io/js/script.js"></script>
@@ -63,7 +69,7 @@ const siteName = "Monogrowl";
         description:
           "Bass, beats, beers and brunch. Southerner in Sheffield making noise with synthesizers.",
         genre: "Electronic",
-        image: "/images/monogrowl.jpg",
+        image: `${siteUrl}/images/monogrowl.jpg`,
         sameAs: [
           "https://open.spotify.com/artist/5ESygfI91sh8X4emLEeJ40",
           "https://music.apple.com/gb/album/overflown-single/1761736992",
