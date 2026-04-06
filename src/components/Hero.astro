@@ -12,7 +12,7 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
 <section class="hero">
   <div class="hero-bg" style={`background-image: url('${backgroundImage}')`}>
   </div>
-  <img class="hero-img" src={backgroundImage} alt="" />
+  <img class="hero-img" src={backgroundImage} alt="Monogrowl" width="2048" height="2048" fetchpriority="high" />
   <div class="hero-content">
     <p class="hero-label">{label}</p>
     <h1 class="hero-title" set:html={title} />
