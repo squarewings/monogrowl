@@ -8,10 +8,14 @@ interface Props {
 }
 
 const { title, year, type, image, listenUrl } = Astro.props;
+const webpImage = image.replace('.jpg', '.webp');
 ---
 
 <a class="release-card" href={listenUrl} target="_blank" rel="noopener">
-  <img src={image} alt={title} loading="lazy" />
+  <picture>
+      <source srcset={webpImage} type="image/webp" />
+      <img src={image} alt={title} loading="lazy" decoding="async" />
+    </picture>
   <div class="release-info">
     <p class="release-title">{title}</p>
     <p class="release-year">{type} &middot; {year}</p>
