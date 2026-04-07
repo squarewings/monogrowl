@@ -69,10 +69,25 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
         "@context": "https://schema.org",
         "@type": "MusicGroup",
         name: "Monogrowl",
+        url: siteUrl,
         description:
-          "Bass, beats, beers and brunch. Southerner in Sheffield making noise with synthesizers.",
-        genre: "Electronic",
-        image: `${siteUrl}/images/monogrowl.jpg`,
+          "Bass, beats, beers and brunch. Electronic music from Sheffield and Brooklyn.",
+        genre: ["Electronic", "Bass", "Synth"],
+        foundingLocation: {
+          "@type": "City",
+          name: "Sheffield",
+          addressCountry: "GB",
+        },
+        image: {
+          "@type": "ImageObject",
+          url: `${siteUrl}/images/monogrowl.jpg`,
+          width: 2048,
+          height: 2048,
+        },
+        member: {
+          "@type": "Person",
+          name: "Tyler Langan",
+        },
         sameAs: [
           "https://open.spotify.com/artist/5ESygfI91sh8X4emLEeJ40",
           "https://music.apple.com/gb/album/overflown-single/1761736992",
