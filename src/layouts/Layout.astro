@@ -49,7 +49,7 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
     <meta name="twitter:image" content={absoluteOgImage} />
 
     <!-- Preload hero image for faster LCP -->
-    <link rel="preload" as="image" href="/images/monogrowl.jpg" fetchpriority="high" />
+    <link rel="preload" as="image" href="/images/monogrowl.webp" type="image/webp" fetchpriority="high" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
