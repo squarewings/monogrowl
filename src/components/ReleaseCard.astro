@@ -8,10 +8,14 @@ interface Props {
 }
 
 const { title, year, type, image, listenUrl } = Astro.props;
+const webpImage = image.replace('.jpg', '.webp');
 ---
 
 <a class="release-card" href={listenUrl} target="_blank" rel="noopener">
-  <img src={image} alt={title} loading="lazy" />
+  <picture>
+      <source srcset={webpImage} type="image/webp" />
+      <img src={image} alt={title} loading="lazy" decoding="async" />
+    </picture>
   <div class="release-info">
     <p class="release-title">{title}</p>
     <p class="release-year">{type} &middot; {year}</p>
@@ -33,10 +37,26 @@ const { title, year, type, image, listenUrl } = Astro.props;
     border: 1px solid $border;
     border-radius: 8px;
     overflow: hidden;
-    transition: border-color 0.15s;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 
     &:hover {
       border-color: #333;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+      img {
+        transform: scale(1.04);
+        filter: brightness(1);
+      }
+
+      .release-listen {
+        opacity: 1;
+      }
+    }
+
+    picture {
+      display: block;
+      overflow: hidden;
     }
 
     img {
@@ -45,6 +65,7 @@ const { title, year, type, image, listenUrl } = Astro.props;
       display: block;
       object-fit: cover;
       filter: brightness(0.9);
+      transition: transform 0.3s ease, filter 0.3s ease;
     }
   }
 
@@ -75,11 +96,7 @@ const { title, year, type, image, listenUrl } = Astro.props;
     text-transform: uppercase;
     color: $accent;
     text-decoration: none;
-    opacity: 0.9;
-    transition: opacity 0.15s;
-
-    &:hover {
-      opacity: 1;
-    }
+    opacity: 0.7;
+    transition: opacity 0.2s;
   }
 </style>

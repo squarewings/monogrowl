@@ -12,7 +12,10 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
 <section class="hero">
   <div class="hero-bg" style={`background-image: url('${backgroundImage}')`}>
   </div>
-  <img class="hero-img" src={backgroundImage} alt="Monogrowl" width="2048" height="2048" fetchpriority="high" />
+  <picture class="hero-img">
+    <source srcset={backgroundImage.replace('.jpg', '.webp')} type="image/webp" />
+    <img src={backgroundImage} alt="Monogrowl" width="2048" height="2048" fetchpriority="high" />
+  </picture>
   <div class="hero-content">
     <p class="hero-label">{label}</p>
     <h1 class="hero-title" set:html={title} />
@@ -89,6 +92,14 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
 
   .hero-img {
     display: none;
+
+    img {
+      width: 100%;
+      height: auto;
+      filter: brightness(0.35) saturate(0.6);
+      mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+    }
   }
 
   @media (max-width: 600px) {
@@ -103,15 +114,6 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
 
     .hero-img {
       display: block;
-      width: 100%;
-      height: auto;
-      filter: brightness(0.35) saturate(0.6);
-      mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
-      -webkit-mask-image: linear-gradient(
-        to bottom,
-        #000 50%,
-        transparent 100%
-      );
     }
 
     .hero-content {
