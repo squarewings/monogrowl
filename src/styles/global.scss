@@ -63,6 +63,32 @@ body {
   }
 }
 
+// ── PLATFORM LINK STAGGER ─────────────────────────────
+// When the links section scrolls into view, each button
+// cascades in with a short delay. Uses animation (not transition)
+// so hover transitions stay instant and unaffected.
+@keyframes slide-up-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.js-ready .links-section.in-view .platform-grid > * {
+  animation: slide-up-in 0.35s ease-out both;
+
+  &:nth-child(1) { animation-delay: 0.05s; }
+  &:nth-child(2) { animation-delay: 0.11s; }
+  &:nth-child(3) { animation-delay: 0.17s; }
+  &:nth-child(4) { animation-delay: 0.23s; }
+  &:nth-child(5) { animation-delay: 0.29s; }
+  &:nth-child(6) { animation-delay: 0.35s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-ready .links-section.in-view .platform-grid > * {
+    animation: none;
+  }
+}
+
 // ── SHARED ─────────────────────────────────────────────
 .section-label {
   font-size: 0.65rem;
