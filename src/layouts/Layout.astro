@@ -48,22 +48,20 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={absoluteOgImage} />
 
-    <!-- Preload hero image for faster LCP -->
+    <!-- Preload hero image -->
     <link rel="preload" as="image" href="/images/monogrowl.webp" type="image/webp" fetchpriority="high" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/images/monogrowl.jpg" />
 
-    <!-- Preconnect to external origins -->
+    <!-- Analytics -->
     <link rel="preconnect" href="https://plausible.io" crossorigin />
     <link rel="dns-prefetch" href="https://plausible.io" />
-
-    <!-- Privacy-friendly analytics by Plausible -->
     <script async src="https://plausible.io/js/pa-_D6-tnFYaotbVXJiOjaFm.js"></script>
     <script>
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-      plausible.init()
+      plausible.init();
     </script>
 
     <!-- Structured Data -->
@@ -88,21 +86,21 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
           width: 2048,
           height: 2048,
         },
-        member: {
-          "@type": "Person",
-          name: "Tyler Langan",
-        },
+        member: { "@type": "Person", name: "Tyler Langan" },
         sameAs: [
           "https://open.spotify.com/artist/5ESygfI91sh8X4emLEeJ40",
           "https://music.apple.com/gb/album/overflown-single/1761736992",
           "https://soundcloud.com/monogrowl",
           "https://www.instagram.com/monogrowl/",
+          "https://visualiser.monogrowl.com",
         ],
       })}
     />
-    <!-- Fonts -->
+
+    <!-- Fonts (astro:assets handles preload + subset) -->
     <Font cssVariable="--font-body" preload />
-    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-serif" preload />
+    <Font cssVariable="--font-mono" preload />
   </head>
   <body>
     <slot />

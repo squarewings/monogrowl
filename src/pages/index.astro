@@ -1,6 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import TopBar from "../components/TopBar.astro";
 import Hero from "../components/Hero.astro";
+import Waveform from "../components/Waveform.astro";
+import Ticker from "../components/Ticker.astro";
+import Visualiser from "../components/Visualiser.astro";
 import Bio from "../components/Bio.astro";
 import PlatformLinks from "../components/PlatformLinks.astro";
 import Releases from "../components/Releases.astro";
@@ -9,17 +13,25 @@ import Footer from "../components/Footer.astro";
 ---
 
 <Layout title="Monogrowl | Electronic Music from Sheffield & Brooklyn">
-  <Hero
-    label="Artist"
-    title="Mono<br>growl"
-    subtitle="Music  ·  Sheffield | Brooklyn"
-    backgroundImage="/images/monogrowl.jpg"
-  />
-  <Bio
-    text="“Bass, beats, beers and brunch.<br>Southerner in Sheffield making noise with synthesizers.”"
-  />
-  <PlatformLinks />
-  <Releases />
-  <SpotifyEmbed artistId="5ESygfI91sh8X4emLEeJ40" />
-  <Footer />
+  <div class="fx-grain fx-scanlines">
+    <TopBar />
+    <Hero />
+    <Waveform />
+    <Ticker />
+    <Visualiser />
+    <Bio />
+    <PlatformLinks />
+    <Releases />
+    <SpotifyEmbed artistId="5ESygfI91sh8X4emLEeJ40" />
+    <Footer />
+  </div>
 </Layout>
+
+<style lang="scss" is:global>
+  // FX wrappers attach to the page root so grain + scanlines
+  // render over the whole site (not the <body>, which is shared).
+  .fx-grain,
+  .fx-scanlines {
+    position: relative;
+  }
+</style>

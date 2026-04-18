@@ -1,13 +1,13 @@
-node_modules
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# wrangler files
 .wrangler
 .dev.vars*
 !.dev.vars.example
 .env*
 !.env.example
-<<<<<<< HEAD
-node_modules
-dist
-=======
-dist
-.astro
->>>>>>> 8814e22 (Add Plausible analytics, visualiser link, remove Bandcamp)

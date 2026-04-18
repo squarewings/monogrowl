@@ -1,32 +1,87 @@
 ---
 interface Props {
-  text: string;
+  text?: string; // HTML allowed
+  attribution?: string;
+  since?: string;
 }
-
-const { text } = Astro.props;
+const {
+  text = `Solo project by <em>Tyler Langan</em> — tracing low-end architecture and late-night synthesis, shaped by warehouses, kitchens, and the long walk home.`,
+  attribution = "— Signed from the booth",
+  since = "Est. 2018",
+} = Astro.props;
 ---
 
-<section class="bio-section">
-  <p class="bio-text" set:html={text} />
+<section class="k-bio" id="bio">
+  <div class="lhs">
+    § About<br />
+    <span class="ac">(01)</span>&nbsp;&nbsp;Read time · 20s
+  </div>
+  <div>
+    <div class="rhs" set:html={text} />
+    <div class="sig">
+      <span>{attribution}</span>
+      <span class="line" aria-hidden="true"></span>
+      <span>{since}</span>
+    </div>
+  </div>
 </section>
 
 <style lang="scss">
-  @use '../styles/global.scss' as *;
+  @use "../styles/global.scss" as *;
 
-  .bio-section {
-    max-width: 900px;
+  .k-bio {
+    position: relative;
+    z-index: 2;
+    padding: 120px 28px;
+    display: grid;
+    grid-template-columns: 1fr 2.2fr;
+    gap: 60px;
+    max-width: 1480px;
     margin: 0 auto;
-    padding: 3rem 2.5rem 0;
   }
 
-  .bio-text {
-    font-size: clamp(1.1rem, 3vw, 1.6rem);
+  .lhs {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #888;
+    padding-top: 12px;
+
+    .ac { color: var(--accent); }
+  }
+
+  .rhs {
+    font-family: var(--font-serif);
     font-weight: 300;
-    line-height: 1.5;
-    color: #aaa;
-    border-left: 2px solid $accent;
-    padding-left: 1.5rem;
-    font-style: italic;
-    letter-spacing: 0.01em;
+    font-size: clamp(1.6rem, 3.4vw, 2.8rem);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: $fg;
+    text-wrap: pretty;
+
+    :global(em) {
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+  }
+
+  .sig {
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: #888;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+
+    .line { flex: 1; height: 1px; background: $line; }
+  }
+
+  @media (max-width: 900px) {
+    .k-bio { grid-template-columns: 1fr; padding: 80px 22px; }
   }
 </style>

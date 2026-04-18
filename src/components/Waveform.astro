@@ -1,0 +1,87 @@
+---
+// Animated waveform band used below the hero.
+// Motion is paused via body[data-motion="off"] (see global.scss).
+---
+
+<div class="k-wave-wrap">
+  <div class="k-wave" aria-hidden="true">
+    {Array.from({ length: 96 }).map((_, i) => (
+      <div
+        class:list={["bar", i % 8 === 3 ? "hot" : ""]}
+        style={`height:${20 + Math.abs(Math.sin(i * 0.35)) * 70}%`}
+      />
+    ))}
+  </div>
+  <div class="k-wave-labels">
+    <span>BIO</span><span>VISUALISER</span><span>LISTEN</span><span>RELEASES</span>
+  </div>
+</div>
+
+<script>
+  // Gentle idle animation; no-ops when motion is disabled.
+  const wrap = document.querySelector<HTMLElement>(".k-wave");
+  if (wrap) {
+    const bars = Array.from(wrap.querySelectorAll<HTMLElement>(".bar"));
+    let t = 0;
+    const tick = () => {
+      if (document.body.dataset.motion === "off") {
+        requestAnimationFrame(tick);
+        return;
+      }
+      t += 0.05;
+      for (let i = 0; i < bars.length; i++) {
+        const h =
+          16 +
+          Math.abs(Math.sin(i * 0.28 + t)) * 70 +
+          Math.abs(Math.sin(i * 0.09 + t * 0.6)) * 18;
+        bars[i].style.height = h + "%";
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+</script>
+
+<style lang="scss">
+  @use "../styles/global.scss" as *;
+
+  .k-wave {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    height: 88px;
+    border-top: 1px solid $line;
+    border-bottom: 1px solid $line;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+
+    .bar {
+      flex: 1;
+      margin: 0 2px;
+      background: $fg;
+      opacity: 0.22;
+      border-radius: 2px;
+      transition: opacity .3s, background .3s;
+    }
+    .bar.hot {
+      background: var(--accent);
+      opacity: 1;
+    }
+  }
+
+  .k-wave-wrap { position: relative; }
+  .k-wave-labels {
+    position: absolute;
+    inset: auto 28px 8px 28px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: #777;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+</style>

@@ -1,124 +1,168 @@
 ---
 interface Props {
-  label: string;
-  title: string;
-  subtitle: string;
-  backgroundImage: string;
+  /** kicker line shown above the title */
+  kicker?: string;
+  /** body copy under the title, HTML allowed */
+  blurb?: string;
+  /** catalogue code shown top-right */
+  issue?: string;
 }
-
-const { label, title, subtitle, backgroundImage } = Astro.props;
+const {
+  kicker = "Artist · Electronic · Bass · Synth",
+  blurb = `Bass, beats, beers and brunch.<br>A southerner in Sheffield making <span class="ac">noise</span> with synthesizers — modular lines, kitchen-table patches and a very loud sub.`,
+  issue = "MG/2026/A",
+} = Astro.props;
 ---
 
-<section class="hero">
-  <div class="hero-bg" style={`background-image: url('${backgroundImage}')`}>
+<section class="k-hero">
+  <div class="k-hero-meta">
+    <div>
+      <div><b>Artist</b>&nbsp;&nbsp;{kicker}</div>
+      <div class="mute">Noise with synthesizers. Loud. On purpose.</div>
+    </div>
+    <div class="r">
+      <div><b>Issue</b> <span class="ac">{issue}</span></div>
+      <div>Side A · Portfolio · About · Listen</div>
+    </div>
   </div>
-  <picture class="hero-img">
-    <source srcset={backgroundImage.replace('.jpg', '.webp')} type="image/webp" />
-    <img src={backgroundImage} alt="Monogrowl" width="2048" height="2048" fetchpriority="high" />
-  </picture>
-  <div class="hero-content">
-    <p class="hero-label">{label}</p>
-    <h1 class="hero-title" set:html={title} />
-    <p class="hero-sub">{subtitle}</p>
+
+  <h1 class="k-title">
+    <span class="r1">mono<span class="lo">n. bass</span></span>
+    <span class="r2"><em>growl</em><span class="dot" aria-hidden="true"></span></span>
+  </h1>
+
+  <div class="k-sub">
+    <p set:html={blurb} />
+    <a href="#listen" class="cta">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+      Press play
+    </a>
   </div>
 </section>
 
 <style lang="scss">
   @use "../styles/global.scss" as *;
 
-  .hero {
+  .k-hero {
     position: relative;
+    z-index: 2;
+    padding: 60px 28px 40px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    padding: 2.5rem;
+    justify-content: space-between;
+    gap: 40px;
   }
 
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center top;
-    filter: brightness(0.35) saturate(0.6);
-    z-index: 0;
-
-    &::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        transparent 30%,
-        rgba(8, 8, 8, 0.6) 65%,
-        $bg 100%
-      );
-    }
-  }
-
-  .hero-content {
-    position: relative;
-    z-index: 1;
-    max-width: 900px;
-  }
-
-  .hero-label {
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0.25em;
+  .k-hero-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: $accent;
-    margin-bottom: 1.5rem;
+    color: #8e8e89;
+
+    .r { text-align: right; }
+    b { color: $fg; font-weight: 500; }
+    .ac { color: var(--accent); }
+    .mute { color: #5e5e59; }
   }
 
-  .hero-title {
-    font-family: var(--font-display), sans-serif;
-    font-size: clamp(3.5rem, 16vw, 14rem);
-    font-weight: 900;
-    line-height: 87%;
-    letter-spacing: -0.032em;
-    text-transform: uppercase;
-    color: #fff;
-    text-box: cap alphabetic;
-  }
-
-  .hero-sub {
-    margin-top: 1.5em;
-    font-size: 1.25rem;
+  .k-title {
+    font-family: var(--font-serif);
     font-weight: 300;
-    color: $muted;
-    // letter-spacing: 0.05em;
-  }
+    font-size: clamp(5rem, 20vw, 22rem);
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    font-variation-settings: "opsz" 144, "SOFT" 40;
+    color: $fg;
+    text-wrap: pretty;
 
-  .hero-img {
-    display: none;
-
-    img {
-      width: 100%;
-      height: auto;
-      filter: brightness(0.35) saturate(0.6);
-      mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+    .r1, .r2 { display: block; white-space: nowrap; }
+    .r2 {
+      font-style: italic;
+      color: var(--accent);
+      text-shadow: 0 0 60px color-mix(in oklab, var(--accent) 50%, transparent);
+    }
+    .r2 em { font-style: italic; }
+    .dot {
+      display: inline-block;
+      width: 0.18em;
+      height: 0.18em;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-left: -0.02em;
+      vertical-align: baseline;
+      translate: 0 -0.08em;
+    }
+    .lo {
+      font-family: var(--font-mono);
+      font-size: 0.09em;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: $dim;
+      vertical-align: 0.8em;
+      margin-left: 0.4em;
     }
   }
 
-  @media (max-width: 600px) {
-    .hero {
-      min-height: auto;
-      padding: 0;
+  .k-sub {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 40px;
+    align-items: end;
+
+    p {
+      font-family: var(--font-serif);
+      font-weight: 300;
+      font-style: italic;
+      font-size: clamp(1.2rem, 1.9vw, 1.7rem);
+      line-height: 1.35;
+      color: #c6c6c0;
+      max-width: 640px;
+
+      :global(.ac) {
+        color: var(--accent);
+        font-style: normal;
+        font-weight: 400;
+      }
     }
 
-    .hero-bg {
-      display: none;
-    }
+    .cta {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 22px;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      transition: background .3s, color .3s, box-shadow .3s;
 
-    .hero-img {
-      display: block;
+      &:hover {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 0 0 40px color-mix(in oklab, var(--accent) 40%, transparent);
+      }
     }
+  }
 
-    .hero-content {
-      padding: 0 1.5rem 2rem;
-      margin-top: -4rem;
+  @media (max-width: 900px) {
+    .k-hero-meta {
+      grid-template-columns: 1fr;
+      .r { text-align: left; }
+    }
+    .k-sub {
+      grid-template-columns: 1fr;
+      .cta { justify-self: start; }
     }
   }
 </style>

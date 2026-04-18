@@ -2,38 +2,125 @@
 interface Props {
   artistId: string;
 }
-
 const { artistId } = Astro.props;
-const embedUrl = `https://open.spotify.com/embed/artist/${artistId}?utm_source=generator&theme=0`;
+// Monogrowl uses the artist embed; drop directly on the live site.
+const src = `https://open.spotify.com/embed/artist/${artistId}?utm_source=generator&theme=0`;
 ---
 
-<section class="embed-section">
-  <p class="section-label" style="margin-bottom:1rem">Featured</p>
-  <div class="spotify-embed">
-    <iframe
-      src={embedUrl}
-      width="100%"
-      height="352"
-      allowfullscreen
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy"
-      style="display:block; border:none;"
-    ></iframe>
+<section class="k-now">
+  <div class="slab">
+    <div class="l">
+      <div>
+        <div class="small">
+          <span>● Now playing</span>
+          <span>Spotify embed</span>
+        </div>
+        <h4>Let the <em>sub</em> do the talking.</h4>
+      </div>
+      <p>
+        Live player for the full Monogrowl catalogue on Spotify — sits at the
+        bottom of the page, one more chance to press play.
+      </p>
+      <div class="small">
+        <span>Format</span><span>Spotify · Artist</span><span>Height 352</span>
+      </div>
+    </div>
+    <div class="r">
+      <iframe
+        src={src}
+        width="100%"
+        height="352"
+        frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        title="Monogrowl on Spotify"
+      ></iframe>
+    </div>
   </div>
 </section>
 
 <style lang="scss">
-  @use '../styles/global.scss' as *;
+  @use "../styles/global.scss" as *;
 
-  .embed-section {
-    padding: 1rem 2.5rem 4rem;
-    max-width: 900px;
+  .k-now {
+    position: relative;
+    z-index: 2;
+    max-width: 1480px;
     margin: 0 auto;
+    padding: 20px 28px 120px;
   }
 
-  .spotify-embed {
-    border-radius: 10px;
+  .slab {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 0;
+    border: 1px solid $line;
+    border-radius: 18px;
     overflow: hidden;
-    border: 1px solid $border;
+    background: #070709;
+  }
+
+  .l {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+    border-right: 1px solid $line;
+
+    h4 {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(2rem, 3.4vw, 2.8rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      margin-top: 14px;
+
+      :global(em) { color: var(--accent); }
+    }
+
+    p {
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.55;
+      color: #b1b1ac;
+      max-width: 460px;
+    }
+
+    .small {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #777;
+      display: flex;
+      gap: 14px;
+
+      span:first-child { color: var(--accent); }
+    }
+  }
+
+  .r {
+    position: relative;
+    min-height: 352px;
+    background: #0a0a0c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 352px;
+      border: 0;
+      background: transparent;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .slab { grid-template-columns: 1fr; }
+    .l { border-right: 0; border-bottom: 1px solid $line; }
   }
 </style>

@@ -1,68 +1,75 @@
 ---
 interface Props {
   href: string;
-  label: string;
-  disabled?: boolean;
+  num: string;      // "01 / stream"
+  label: string;    // "Spotify"
+  sub: string;      // "monthly listeners · full catalogue"
 }
-
-const { href, label, disabled = false } = Astro.props;
+const { href, num, label, sub } = Astro.props;
 ---
 
-<a
-  class:list={['platform-btn', { bandcamp: disabled }]}
-  href={href}
-  target="_blank"
-  rel="noopener"
-  aria-label={disabled ? `${label} coming soon` : undefined}
->
+<a href={href} target="_blank" rel="noopener">
+  <div class="num">{num}</div>
   <slot />
-  {label}
+  <div>
+    <div class="lbl">{label}</div>
+    <div class="sub">{sub}</div>
+  </div>
 </a>
 
 <style lang="scss">
-  @use '../styles/global.scss' as *;
+  @use "../styles/global.scss" as *;
 
-  .platform-btn {
+  a {
+    position: relative;
+    padding: 28px 22px 22px;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.9rem 1.1rem;
-    background: #1a1a1a;
-    border: 1px solid #2e2e2e;
-    border-radius: 6px;
-    color: #e8e8e8;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    font-family: inherit;
-    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 170px;
+    border-right: 1px solid $line;
+    transition: background .3s, color .3s;
+    overflow: hidden;
 
-    &:hover {
-      border-color: $accent;
-      background: #222;
-      color: #fff;
-      transform: translateY(-1px);
-    }
-
-    :global(.icon) {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      opacity: 0.85;
-    }
-
-    &.bandcamp {
-      border-style: dashed;
-      opacity: 0.5;
-      pointer-events: none;
-
-      &::after {
-        content: 'soon';
-        margin-left: auto;
-        font-size: 0.65rem;
-        letter-spacing: 0.1em;
-        color: $muted;
-      }
-    }
+    &:last-child { border-right: 0; }
+    &:hover { background: var(--accent); color: #000; }
+    &:hover .num,
+    &:hover .sub { color: rgba(0, 0, 0, 0.7); }
   }
+
+  .num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: #777;
+  }
+
+  .lbl {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2.1rem;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #777;
+    margin-top: 6px;
+  }
+
+  :global(svg.ico) {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    width: 20px;
+    height: 20px;
+    color: #bababa;
+    transition: color .3s;
+  }
+  a:hover :global(svg.ico) { color: #000; }
 </style>

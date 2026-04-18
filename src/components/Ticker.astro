@@ -1,0 +1,68 @@
+---
+// Endless horizontal manifesto strip. Pure CSS animation.
+const WORDS: [string, boolean][] = [
+  ["bass", true], ["beats", false], ["beers", true], ["brunch", false],
+  ["synthesizers", true], ["sheffield", false], ["brooklyn", true],
+];
+---
+
+<div class="k-ticker" aria-hidden="true">
+  <div class="inner">
+    {[0, 1].map(() => (
+      <span>
+        {WORDS.map(([w, em]) => (
+          <>
+            {em ? <em>{w}</em> : <span class="mute">{w}</span>}
+            <span class="d" />
+          </>
+        ))}
+      </span>
+    ))}
+  </div>
+</div>
+
+<style lang="scss">
+  @use "../styles/global.scss" as *;
+
+  .k-ticker {
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    white-space: nowrap;
+    border-bottom: 1px solid $line;
+    background: $bg;
+
+    .inner {
+      display: inline-flex;
+      gap: 32px;
+      padding: 20px 0;
+      animation: scrollX 40s linear infinite;
+      will-change: transform;
+    }
+
+    > .inner > span {
+      display: inline-flex;
+      align-items: center;
+      gap: 32px;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(2rem, 4.5vw, 3.6rem);
+      letter-spacing: -0.01em;
+      color: $fg;
+    }
+
+    .d {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex: none;
+    }
+
+    .mute {
+      color: transparent;
+      -webkit-text-stroke: 1px $fg;
+    }
+  }
+</style>

@@ -1,44 +1,71 @@
 ---
-import ReleaseCard from './ReleaseCard.astro';
+import ReleaseCard from "./ReleaseCard.astro";
 
 const releases = [
   {
-    title: 'Overflown',
-    type: 'Single',
-    year: '2024',
-    image: '/images/overflown.jpg',
-    listenUrl: 'https://open.spotify.com/album/2vgmjUCApm3U96bzqMrLVg',
+    title: "Overflown",
+    cat: "MG/SG/2024 · Single · Self-released",
+    image: "/images/overflown.jpg",
+    listenUrl: "https://open.spotify.com/album/2vgmjUCApm3U96bzqMrLVg",
+    tracks: [
+      { no: "01", name: "Overflown", len: "04:12" },
+      { no: "02", name: "Overflown (Sub-only)", len: "04:12" },
+    ],
   },
   {
-    title: 'Monogrowl',
-    type: 'Single',
-    year: '2018',
-    image: '/images/monogrowl.jpg',
-    listenUrl: 'https://open.spotify.com/album/4I14AwWBSp4KhHPtqqOmKR',
+    title: "Monogrowl",
+    cat: "MG/SG/2018 · Single · Debut",
+    image: "/images/monogrowl.jpg",
+    listenUrl: "https://open.spotify.com/album/4I14AwWBSp4KhHPtqqOmKR",
+    tracks: [{ no: "01", name: "Monogrowl", len: "03:58" }],
   },
 ];
 ---
 
-<section class="music-section">
-  <p class="section-label">Releases</p>
-  <div class="releases-grid">
-    {releases.map((release) => (
-      <ReleaseCard {...release} />
-    ))}
+<section class="k-rel" id="releases">
+  <div class="k-hd">
+    <span>§ Releases <span class="ac">(03)</span></span>
+    <span>02 · 2018 → 2024</span>
+  </div>
+  <div class="k-rel-grid">
+    {releases.map((r) => <ReleaseCard {...r} />)}
   </div>
 </section>
 
 <style lang="scss">
-  .music-section {
-    padding: 3rem 2.5rem;
-    max-width: 900px;
+  @use "../styles/global.scss" as *;
+
+  .k-rel {
+    position: relative;
+    z-index: 2;
+    max-width: 1480px;
     margin: 0 auto;
+    padding: 40px 28px 80px;
   }
 
-  .releases-grid {
+  .k-hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #888;
+    border-bottom: 1px solid $line;
+    padding-bottom: 12px;
+
+    .ac { color: var(--accent); }
+  }
+
+  .k-rel-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .k-rel-grid { grid-template-columns: 1fr; }
   }
 </style>
