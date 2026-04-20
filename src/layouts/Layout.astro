@@ -25,6 +25,27 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <!-- Scroll-reveal: set class synchronously to prevent FOIC; wire observer after DOM ready -->
+    <script is:inline>
+      document.documentElement.classList.add('js-ready');
+      document.addEventListener('DOMContentLoaded', function () {
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) {
+                e.target.classList.add('in-view');
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+        );
+        document
+          .querySelectorAll('.bio-section, .links-section, .music-section, .embed-section')
+          .forEach(function (el) { io.observe(el); });
+      });
+    </script>
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta
@@ -42,11 +63,20 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:locale" content="en_GB" />
 
+    <!-- Open Graph image dimensions (improves social preview rendering) -->
+    <meta property="og:image:width" content="2048" />
+    <meta property="og:image:height" content="2048" />
+    <meta property="og:image:alt" content="Monogrowl – Electronic music from Sheffield &amp; Brooklyn" />
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={absoluteOgImage} />
+    <meta name="twitter:image:alt" content="Monogrowl – Electronic music from Sheffield &amp; Brooklyn" />
+
+    <!-- Theme colour for mobile browser chrome -->
+    <meta name="theme-color" content="#080808" />
 
     <!-- Preload hero image for faster LCP -->
     <link rel="preload" as="image" href="/images/monogrowl.webp" type="image/webp" fetchpriority="high" />
@@ -58,6 +88,8 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
     <!-- Preconnect to external origins -->
     <link rel="preconnect" href="https://plausible.io" crossorigin />
     <link rel="dns-prefetch" href="https://plausible.io" />
+    <link rel="preconnect" href="https://open.spotify.com" crossorigin />
+    <link rel="dns-prefetch" href="https://open.spotify.com" />
 
     <!-- Analytics -->
     <script defer data-domain="monogrowl.com" src="https://plausible.io/js/script.js"></script>
@@ -101,7 +133,9 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
     <Font cssVariable="--font-display" preload />
   </head>
   <body>
-    <slot />
+    <main>
+      <slot />
+    </main>
   </body>
 </html>
 
