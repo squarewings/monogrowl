@@ -10,7 +10,7 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
 ---
 
 <section class="hero">
-  <div class="hero-bg" style={`background-image: url('${backgroundImage}')`}>
+  <div class="hero-bg" style={`background-image: url('${backgroundImage.replace('.jpg', '.webp')}')`}>
   </div>
   <picture class="hero-img">
     <source srcset={backgroundImage.replace('.jpg', '.webp')} type="image/webp" />
@@ -62,6 +62,17 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
     max-width: 900px;
   }
 
+  @keyframes hero-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .hero-label {
     font-size: 0.7rem;
     font-weight: 500;
@@ -69,6 +80,8 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
     text-transform: uppercase;
     color: $accent;
     margin-bottom: 1.5rem;
+    animation: hero-fade-up 0.6s ease-out both;
+    animation-delay: 0.1s;
   }
 
   .hero-title {
@@ -80,6 +93,8 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
     text-transform: uppercase;
     color: #fff;
     text-box: cap alphabetic;
+    animation: hero-fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.25s;
   }
 
   .hero-sub {
@@ -88,6 +103,16 @@ const { label, title, subtitle, backgroundImage } = Astro.props;
     font-weight: 300;
     color: $muted;
     // letter-spacing: 0.05em;
+    animation: hero-fade-up 0.6s ease-out both;
+    animation-delay: 0.55s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-label,
+    .hero-title,
+    .hero-sub {
+      animation: none;
+    }
   }
 
   .hero-img {
