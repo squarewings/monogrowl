@@ -51,6 +51,16 @@ const { href, num, label, sub } = Astro.props;
     font-size: 2.1rem;
     line-height: 0.95;
     letter-spacing: -0.01em;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  @media (max-width: 900px) {
+    .lbl { font-size: 1.6rem; }
+  }
+
+  @media (max-width: 480px) {
+    .lbl { font-size: 1rem; }
   }
 
   .sub {

@@ -10,9 +10,8 @@ $ledger-bg: #050505;
 $ledger-line: #1a1a1a;
 
 :root {
-  --font-serif: "Fraunces", serif;
-  --font-body: "Space Grotesk", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  // --font-serif, --font-body, --font-mono are set by Astro's <Font> component
+  // in Layout.astro — don't override them here or the hashed font-family names break
   --accent: #{$accent};
 }
 
