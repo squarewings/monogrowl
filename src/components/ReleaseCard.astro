@@ -11,7 +11,7 @@ const { title, year, type, image, listenUrl } = Astro.props;
 const webpImage = image.replace('.jpg', '.webp');
 ---
 
-<a class="release-card" href={listenUrl} target="_blank" rel="noopener">
+<a class="release-card" href={listenUrl} target="_blank" rel="noopener noreferrer" aria-label={`Listen to ${title} (${type}, ${year}) on Spotify (opens in new tab)`}>
   <picture>
       <source srcset={webpImage} type="image/webp" />
       <img src={image} alt={title} loading="lazy" decoding="async" />
@@ -40,7 +40,7 @@ const webpImage = image.replace('.jpg', '.webp');
     transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 
     &:hover {
-      border-color: #333;
+      border-color: $accent;
       transform: translateY(-3px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 
@@ -48,6 +48,16 @@ const webpImage = image.replace('.jpg', '.webp');
         transform: scale(1.04);
         filter: brightness(1);
       }
+
+      .release-listen {
+        opacity: 1;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid $accent;
+      outline-offset: 2px;
+      border-color: $accent;
 
       .release-listen {
         opacity: 1;
@@ -66,6 +76,24 @@ const webpImage = image.replace('.jpg', '.webp');
       object-fit: cover;
       filter: brightness(0.9);
       transition: transform 0.3s ease, filter 0.3s ease;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .release-card {
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:hover {
+        transform: none;
+
+        img {
+          transform: none;
+        }
+      }
+
+      img {
+        transition: filter 0.3s ease;
+      }
     }
   }
 

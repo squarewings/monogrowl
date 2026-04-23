@@ -8,12 +8,13 @@ const embedUrl = `https://open.spotify.com/embed/artist/${artistId}?utm_source=g
 ---
 
 <section class="embed-section">
-  <p class="section-label" style="margin-bottom:1rem">Featured</p>
+  <h2 class="section-label embed-label">Featured</h2>
   <div class="spotify-embed">
     <iframe
       src={embedUrl}
       width="100%"
       height="352"
+      title="Monogrowl on Spotify"
       allowfullscreen
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
@@ -29,6 +30,10 @@ const embedUrl = `https://open.spotify.com/embed/artist/${artistId}?utm_source=g
     padding: 1rem 2.5rem 4rem;
     max-width: 900px;
     margin: 0 auto;
+  }
+
+  .embed-label {
+    margin-bottom: 1rem;
   }
 
   .spotify-embed {

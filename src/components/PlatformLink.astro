@@ -12,8 +12,8 @@ const { href, label, disabled = false } = Astro.props;
   class:list={['platform-btn', { bandcamp: disabled }]}
   href={href}
   target="_blank"
-  rel="noopener"
-  aria-label={disabled ? `${label} coming soon` : undefined}
+  rel="noopener noreferrer"
+  aria-label={disabled ? `${label} coming soon` : `${label} (opens in new tab)`}
 >
   <slot />
   {label}
@@ -35,13 +35,27 @@ const { href, label, disabled = false } = Astro.props;
     font-size: 0.875rem;
     font-weight: 500;
     font-family: inherit;
-    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s, box-shadow 0.15s;
 
     &:hover {
       border-color: $accent;
       background: #222;
       color: #fff;
       transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    &:focus-visible {
+      outline: 2px solid $accent;
+      outline-offset: 2px;
+      border-color: $accent;
+      background: #222;
+      color: #fff;
     }
 
     :global(.icon) {
@@ -49,6 +63,13 @@ const { href, label, disabled = false } = Astro.props;
       height: 20px;
       flex-shrink: 0;
       opacity: 0.85;
+      transition: opacity 0.15s;
+    }
+
+    &:hover :global(.icon),
+    &:focus-visible :global(.icon) {
+      opacity: 1;
+      color: $accent;
     }
 
     &.bandcamp {
@@ -62,6 +83,16 @@ const { href, label, disabled = false } = Astro.props;
         font-size: 0.65rem;
         letter-spacing: 0.1em;
         color: $muted;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .platform-btn {
+      transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+
+      &:hover {
+        transform: none;
       }
     }
   }

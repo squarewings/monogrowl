@@ -6,6 +6,27 @@ $text: #e8e8e8;
 $muted: #888;
 $accent: #c8ff00;
 
+// ── SKIP LINK ──────────────────────────────────────────
+// Visually hidden until focused — WCAG 2.4.1 bypass mechanism
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  padding: 0.5rem 1.25rem;
+  background: $accent;
+  color: #000;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 9999;
+  transition: top 0.15s ease;
+
+  &:focus {
+    top: 0;
+  }
+}
+
 // ── RESET ──────────────────────────────────────────────
 *,
 *::before,
