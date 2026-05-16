@@ -1,0 +1,6 @@
+/clock/
+  Cache-Control: no-cache
+/clock/index.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
