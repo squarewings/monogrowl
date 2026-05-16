@@ -17,10 +17,10 @@
  * CACHE_VERSION is stamped at build time by swVersionPlugin in vite.config.ts
  * — every build produces a unique sw.js byte stream, forcing the browser to
  * re-register the SW and trigger skipWaiting/clients.claim. In dev the literal
- * 'mp8mac8l' is fine (dev SW is rarely registered). Old caches are deleted
+ * 'mp8qbkk4' is fine (dev SW is rarely registered). Old caches are deleted
  * on activate regardless.
  */
-const CACHE_VERSION = 'wc-mp8mac8l';
+const CACHE_VERSION = 'wc-mp8qbkk4';
 const BASE = new URL('./', self.location).pathname;
 // apple-touch-icon.png is referenced by index.html but isn't shipped yet
 // (CODING_NOTES §2). Listed here so the day someone drops it into public/, the
