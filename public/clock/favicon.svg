@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0a0907"/>
+  <rect x="6" y="6" width="52" height="52" rx="8" fill="#0e0d0b" stroke="#2b2823" stroke-width="2"/>
+  <g fill="#f0a040" font-family="ui-monospace, monospace" font-weight="700" font-size="9" text-anchor="middle">
+    <text x="32" y="20">IT IS</text>
+    <text x="32" y="34">FIVE</text>
+    <text x="32" y="48">PAST</text>
+  </g>
+  <circle cx="10" cy="10" r="1.6" fill="#f0a040"/>
+  <circle cx="54" cy="10" r="1.6" fill="#231f1c"/>
+  <circle cx="54" cy="54" r="1.6" fill="#231f1c"/>
+  <circle cx="10" cy="54" r="1.6" fill="#231f1c"/>
+</svg>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-theme="onyx" data-format="12" data-seconds="0">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Clock</title>
+  <meta name="description" content="The definitive word clock. Reads time as English in a beautifully crafted Sharper Image bezel — onyx, cobalt, crimson, mercury themes. 60fps, fully responsive, offline-ready.">
+  <meta name="theme-color" content="#0a0907">
+  <meta name="color-scheme" content="dark light">
+
+  <link rel="canonical" href="https://monogrowl.com/clock/">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Word Clock — monogrowl">
+  <meta property="og:description" content="Reads the time as English. Pure desk-side decor for the browser.">
+  <meta property="og:image" content="og.png">
+  <meta property="og:url" content="https://monogrowl.com/clock/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Word Clock — monogrowl">
+  <meta name="twitter:description" content="Reads the time as English. Pure desk-side decor for the browser.">
+  <meta name="twitter:image" content="og.png">
+
+  <!--
+    No-flash boot: resolves theme/format/seconds before the first CSS paint
+    by writing data-* attributes on <html>. Kept tiny (~400 bytes) and wrapped
+    in try/catch so private-mode storage failures never block rendering.
+  -->
+  <script>
+    (function () {
+      try {
+        var p = new URLSearchParams(location.search);
+        var s = {};
+        try { s = JSON.parse(localStorage.getItem('wc') || '{}'); } catch (_) {}
+        var t = p.get('theme')   || s.theme   || 'auto';
+        var f = p.get('format')  || s.format  || '12';
+        var qs = p.get('seconds');
+        var c = qs != null ? qs : (s.seconds ? '1' : '0');
+        if (t === 'auto') {
+          var h = new Date().getHours();
+          t = (h < 6 || h >= 22) ? 'crimson' : (h < 18 ? 'cobalt' : 'onyx');
+        }
+        if (['onyx','cobalt','crimson','mercury'].indexOf(t) < 0) t = 'onyx';
+        // Accept '24'/'24h'/'12'/'12h' — the SPEC deep-link uses the suffix.
+        f = (f === '24' || f === '24h') ? '24' : '12';
+        var r = document.documentElement;
+        r.dataset.theme = t;
+        r.dataset.format = f;
+        r.dataset.seconds = c === '1' ? '1' : '0';
+        // Mirror reduced-motion as a class for CSS scoping.
+        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          r.classList.add('rm');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <!--
+    Critical CSS — bezel + grid + onyx defaults. Anything required for the
+    first painted frame lives here so we hit FCP without waiting on the
+    hashed stylesheet.
+  -->
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%;background:var(--bg,#0a0907);overscroll-behavior:none}
+    body{
+      font-family:'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color:var(--on,#f1c27a);
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+      min-height:100dvh;display:grid;place-items:center;
+      padding:max(env(safe-area-inset-top),0px) max(env(safe-area-inset-right),0px)
+              max(env(safe-area-inset-bottom),0px) max(env(safe-area-inset-left),0px);
+    }
+    :root{
+      --cell:clamp(20px,6vmin,56px);
+      --gap:calc(var(--cell) * 0.28);
+      --bezel-pad:clamp(16px,4vmin,48px);
+      --bg:#0a0907;--bezel-1:#1c1a17;--bezel-2:#2b2823;--glass:#0e0d0b;
+      --off:#2a2622;--off-opacity:0.22;--on:#f1c27a;--glow:rgba(240,160,64,0.33);
+      --dot-on:#f0a040;--dot-off:#231f1c;--accent:#f0a040;
+      color-scheme:dark;
+    }
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    #device{
+      position:relative;
+      width:min(96vmin, calc(100dvh - 2 * var(--bezel-pad)) * 11 / 10);
+      aspect-ratio: 11 / 10;
+      padding:var(--bezel-pad);
+      border-radius:calc(var(--bezel-pad) * 0.9);
+      background:
+        radial-gradient(120% 80% at 30% 0%, color-mix(in srgb, var(--bezel-2) 70%, transparent), transparent 60%),
+        linear-gradient(160deg, var(--bezel-2), var(--bezel-1) 60%, #000 100%);
+      box-shadow:
+        0 30px 80px -20px rgba(0,0,0,.85),
+        0 10px 30px -10px rgba(0,0,0,.7),
+        inset 0 1px 0 rgba(255,255,255,.05),
+        inset 0 -2px 0 rgba(0,0,0,.6);
+    }
+    .glass{
+      position:relative;width:100%;height:100%;
+      border-radius:calc(var(--bezel-pad) * 0.5);
+      background:
+        radial-gradient(140% 100% at 20% 0%, rgba(255,255,255,.04), transparent 50%),
+        linear-gradient(180deg, color-mix(in srgb, var(--glass) 92%, #000), var(--glass));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.04),
+        inset 0 2px 6px rgba(0,0,0,.8),
+        inset 0 -2px 6px rgba(0,0,0,.6);
+      overflow:hidden;
+      display:grid;place-items:center;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(11, var(--cell));
+      grid-template-rows:repeat(10, var(--cell));
+      gap:var(--gap);
+    }
+    .cell{
+      display:grid;place-items:center;
+      font-weight:700;font-size:calc(var(--cell) * 0.55);line-height:1;
+      color:var(--off);opacity:var(--off-opacity);
+      transition:opacity 220ms ease-out, color 220ms ease-out, text-shadow 220ms ease-out;
+      will-change:opacity;
+      user-select:none;
+    }
+    .cell.on{
+      color:var(--on);opacity:1;
+      text-shadow:
+        0 0 calc(var(--cell) * 0.18) var(--glow),
+        0 0 calc(var(--cell) * 0.45) var(--glow);
+    }
+    html.rm .cell{transition:opacity 120ms linear}
+    html.rm .cell.on{text-shadow:none}
+  </style>
+
+  <script type="module" crossorigin src="/clock/assets/index-539UDv2I.js"></script>
+  <link rel="stylesheet" crossorigin href="/clock/assets/style-DT9tLr-n.css">
+</head>
+<body>
+  <main id="device" aria-label="Word clock">
+    <!-- Sibling of .glass so the LED accent traces the bezel radius and
+         is not clipped by .glass{overflow:hidden}. -->
+    <div class="bezel-pulse" aria-hidden="true"></div>
+    <div class="glass">
+      <div class="grid" role="presentation" id="grid"></div>
+      <div class="dots" data-lit="0" aria-hidden="true">
+        <span class="dot"></span><span class="dot"></span>
+        <span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="seconds" id="seconds" aria-hidden="true" hidden></div>
+      <div class="particles" aria-hidden="true">
+        <i class="dust"></i><i class="dust"></i><i class="dust"></i><i class="dust"></i><i class="dust"></i>
+        <i class="dust"></i><i class="dust"></i><i class="dust"></i><i class="dust"></i><i class="dust"></i>
+      </div>
+    </div>
+    <div class="sr-only" aria-live="polite" aria-atomic="true" id="speak"></div>
+  </main>
+
+  <footer id="hud" hidden aria-label="Clock controls">
+    <button type="button" id="hud-theme"  aria-label="Change theme"      title="Theme (T)">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+      <span class="hud-label" id="hud-theme-label">Onyx</span>
+    </button>
+    <button type="button" id="hud-format" aria-label="Toggle 12 or 24 hour format" aria-pressed="false" title="Format">
+      <span class="hud-label" id="hud-format-label">12h</span>
+    </button>
+    <button type="button" id="hud-seconds" aria-label="Toggle seconds" aria-pressed="false" title="Seconds (S)">
+      <span class="hud-label">:SS</span>
+    </button>
+    <button type="button" id="hud-fullscreen" aria-label="Toggle fullscreen" title="Fullscreen (F)">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 9V4h5v2H6v3H4Zm11-5h5v5h-2V6h-3V4Zm5 11v5h-5v-2h3v-3h2ZM9 20H4v-5h2v3h3v2Z"/></svg>
+    </button>
+    <span id="hud-ios-hint" class="hud-label" hidden>Add to Home Screen</span>
+  </footer>
+</body>
+</html>

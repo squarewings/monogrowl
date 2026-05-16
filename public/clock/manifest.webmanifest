@@ -1,0 +1,16 @@
+{
+  "name": "Word Clock",
+  "short_name": "Clock",
+  "description": "Reads the time as English. Desk-side decor for the browser.",
+  "start_url": "/clock/",
+  "scope": "/clock/",
+  "display": "standalone",
+  "background_color": "#0a0907",
+  "theme_color": "#0a0907",
+  "orientation": "any",
+  "icons": [
+    { "src": "/clock/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/clock/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/clock/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
