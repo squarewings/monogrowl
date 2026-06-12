@@ -1,25 +1,6 @@
 ---
 import ReleaseCard from "./ReleaseCard.astro";
-
-const releases = [
-  {
-    title: "Overflown",
-    cat: "MG/SG/2024 · Single · Self-released",
-    image: "/images/overflown.jpg",
-    listenUrl: "https://open.spotify.com/album/2vgmjUCApm3U96bzqMrLVg",
-    tracks: [
-      { no: "01", name: "Overflown", len: "04:12" },
-      { no: "02", name: "Overflown (Sub-only)", len: "04:12" },
-    ],
-  },
-  {
-    title: "Monogrowl",
-    cat: "MG/SG/2018 · Single · Debut",
-    image: "/images/monogrowl.jpg",
-    listenUrl: "https://open.spotify.com/album/4I14AwWBSp4KhHPtqqOmKR",
-    tracks: [{ no: "01", name: "Monogrowl", len: "03:58" }],
-  },
-];
+import { RELEASES } from "../data/releases";
 ---
 
 <section class="k-rel" id="releases">
@@ -28,7 +9,7 @@ const releases = [
     <span>02 · 2018 → 2024</span>
   </div>
   <div class="k-rel-grid">
-    {releases.map((r) => <ReleaseCard {...r} />)}
+    {RELEASES.map((r) => <ReleaseCard {...r} />)}
   </div>
 </section>
 

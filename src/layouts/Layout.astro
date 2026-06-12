@@ -1,5 +1,6 @@
 ---
 import { Font } from 'astro:assets';
+import { RELEASES } from '../data/releases';
 
 interface Props {
   title: string;
@@ -65,35 +66,58 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
       plausible.init();
     </script>
 
-    <!-- Structured Data -->
+    <!-- Structured Data: MusicGroup + MusicAlbum graph (SPEC S2).
+         Albums reference the artist by @id; data from src/data/releases.ts. -->
     <script
       type="application/ld+json"
       set:html={JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "MusicGroup",
-        name: "Monogrowl",
-        url: siteUrl,
-        description:
-          "Bass, beats, beers and brunch. Electronic music from Sheffield and Brooklyn.",
-        genre: ["Electronic", "Bass", "Synth"],
-        foundingLocation: {
-          "@type": "City",
-          name: "Sheffield",
-          addressCountry: "GB",
-        },
-        image: {
-          "@type": "ImageObject",
-          url: `${siteUrl}/images/monogrowl.jpg`,
-          width: 2048,
-          height: 2048,
-        },
-        member: { "@type": "Person", name: "Tyler Langan" },
-        sameAs: [
-          "https://open.spotify.com/artist/5ESygfI91sh8X4emLEeJ40",
-          "https://music.apple.com/gb/album/overflown-single/1761736992",
-          "https://soundcloud.com/monogrowl",
-          "https://www.instagram.com/monogrowl/",
-          "https://visualiser.monogrowl.com",
+        "@graph": [
+          {
+            "@type": "MusicGroup",
+            "@id": `${siteUrl}/#artist`,
+            name: "Monogrowl",
+            url: siteUrl,
+            description:
+              "Bass, beats, beers and brunch. Electronic music from Sheffield and Brooklyn.",
+            genre: ["Electronic", "Bass", "Synth"],
+            foundingLocation: {
+              "@type": "City",
+              name: "Sheffield",
+              addressCountry: "GB",
+            },
+            image: {
+              "@type": "ImageObject",
+              url: `${siteUrl}/images/monogrowl.jpg`,
+              width: 2048,
+              height: 2048,
+            },
+            member: { "@type": "Person", name: "Tyler Langan" },
+            sameAs: [
+              "https://open.spotify.com/artist/5ESygfI91sh8X4emLEeJ40",
+              "https://music.apple.com/gb/album/overflown-single/1761736992",
+              "https://soundcloud.com/monogrowl",
+              "https://www.instagram.com/monogrowl/",
+              "https://visualiser.monogrowl.com",
+            ],
+          },
+          ...RELEASES.map((r) => ({
+            "@type": "MusicAlbum",
+            "@id": `${siteUrl}/#album-${r.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+            name: r.title,
+            datePublished: String(r.year),
+            byArtist: { "@id": `${siteUrl}/#artist` },
+            albumReleaseType: "https://schema.org/SingleRelease",
+            image: `${siteUrl}${r.image.src}`,
+            url: r.listenUrl,
+            numTracks: r.tracks.length,
+            track: r.tracks.map((t, i) => ({
+              "@type": "MusicRecording",
+              position: i + 1,
+              name: t.name,
+              duration: t.iso,
+            })),
+          })),
         ],
       })}
     />
