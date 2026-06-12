@@ -38,6 +38,35 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 ::selection { background: var(--accent); color: #000; }
 
+// ── KEYBOARD A11Y (SPEC A3) ──────────────────────────
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+// Visually hidden until focused; first tabbable element on the page.
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  padding: 12px 18px;
+  background: $bg;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transform: translateY(calc(-100% - 16px));
+
+  &:focus-visible {
+    transform: none;
+  }
+}
+
 // ── SHARED UTILITIES ─────────────────────────────────
 .section-label {
   font-family: var(--font-mono);

@@ -5,7 +5,7 @@ import { RELEASES } from "../data/releases";
 
 <section class="k-rel" id="releases">
   <div class="k-hd">
-    <span>§ Releases <span class="ac">(03)</span></span>
+    <h2>§ Releases <span class="ac">(03)</span></h2>
     <span>02 · 2018 → 2024</span>
   </div>
   <div class="k-rel-grid">
@@ -37,6 +37,8 @@ import { RELEASES } from "../data/releases";
     border-bottom: 1px solid $line;
     padding-bottom: 12px;
 
+    // real heading for the outline (SPEC S1), rendered as the old label
+    h2 { font: inherit; letter-spacing: inherit; }
     .ac { color: var(--accent); }
   }
 

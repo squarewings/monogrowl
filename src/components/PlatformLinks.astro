@@ -4,7 +4,7 @@ import PlatformLink from "./PlatformLink.astro";
 
 <section class="k-follow" id="listen">
   <div class="k-hd">
-    <span>§ Listen &amp; Follow <span class="ac">(02)</span></span>
+    <h2>§ Listen &amp; Follow <span class="ac">(02)</span></h2>
     <span>04 channels</span>
   </div>
 
@@ -71,6 +71,8 @@ import PlatformLink from "./PlatformLink.astro";
     border-bottom: 1px solid $line;
     padding-bottom: 12px;
 
+    // real heading for the outline (SPEC S1), rendered as the old label
+    h2 { font: inherit; letter-spacing: inherit; }
     .ac { color: var(--accent); }
   }
 
