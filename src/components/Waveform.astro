@@ -18,16 +18,15 @@
 </div>
 
 <script>
-  // Gentle idle animation; no-ops when motion is disabled.
+  // Gentle idle animation. rafLoop only schedules frames while the band
+  // is on-screen, the tab is visible, and motion is allowed (SPEC P4).
+  import { rafLoop } from "../scripts/motion";
+
   const wrap = document.querySelector<HTMLElement>(".k-wave");
   if (wrap) {
     const bars = Array.from(wrap.querySelectorAll<HTMLElement>(".bar"));
     let t = 0;
-    const tick = () => {
-      if (document.body.dataset.motion === "off") {
-        requestAnimationFrame(tick);
-        return;
-      }
+    rafLoop(wrap, () => {
       t += 0.05;
       for (let i = 0; i < bars.length; i++) {
         const h =
@@ -36,9 +35,7 @@
           Math.abs(Math.sin(i * 0.09 + t * 0.6)) * 18;
         bars[i].style.height = h + "%";
       }
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+    });
   }
 </script>
 

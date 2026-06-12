@@ -130,6 +130,10 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
     <Font cssVariable="--font-mono" preload />
   </head>
   <body>
+    <script>
+      import { syncMotionFlag } from "../scripts/motion";
+      syncMotionFlag();
+    </script>
     <slot />
   </body>
 </html>

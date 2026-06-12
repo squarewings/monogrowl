@@ -44,6 +44,10 @@ const { href = "https://visualiser.monogrowl.com" } = Astro.props;
 
 <script>
   // Small 2D-canvas preview — not GL, just a loop to evoke reactivity.
+  // rafLoop gates frames on viewport intersection + tab visibility +
+  // reduced-motion, capped at 30fps (SPEC P4, N5).
+  import { rafLoop } from "../scripts/motion";
+
   const c = document.getElementById("kviz") as HTMLCanvasElement | null;
   if (c) {
     const ctx = c.getContext("2d")!;
@@ -67,10 +71,6 @@ const { href = "https://visualiser.monogrowl.com" } = Astro.props;
 
     let t = 0;
     const frame = () => {
-      if (document.body.dataset.motion === "off") {
-        requestAnimationFrame(frame);
-        return;
-      }
       t += 0.014;
       const w = c.clientWidth,
         h = c.clientHeight;
@@ -97,9 +97,8 @@ const { href = "https://visualiser.monogrowl.com" } = Astro.props;
         ctx.arc(x, y, 1.5, 0, Math.PI * 2);
         ctx.fill();
       }
-      requestAnimationFrame(frame);
     };
-    requestAnimationFrame(frame);
+    rafLoop(c, frame, 30);
   }
 </script>
 

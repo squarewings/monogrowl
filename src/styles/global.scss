@@ -18,7 +18,10 @@
   padding: 0;
 }
 
-html { scroll-behavior: smooth; }
+// Smooth scrolling only for users who haven't asked for reduced motion.
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 
 body {
   background: $bg;
@@ -122,6 +125,23 @@ footer.site-foot {
 body[data-motion="off"] * {
   animation: none !important;
   transition: none !important;
+}
+
+// CSS-only reduced-motion layer (SPEC A1) — works with JS disabled.
+// Stills the ticker marquee (scrollX), pulse/blink dots, hover
+// transitions, and hides the decorative grain/scanline overlays.
+// The rAF loops are handled by src/scripts/motion.ts.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .fx-grain::before,
+  .fx-scanlines::after {
+    content: none;
+  }
 }
 
 // ── RESPONSIVE DEFAULTS ──────────────────────────────
