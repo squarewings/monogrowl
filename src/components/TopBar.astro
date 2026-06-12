@@ -65,10 +65,17 @@ const { location = "Sheffield ↔ Brooklyn", year = "Est. 2018" } = Astro.props;
   }
 
   @media (max-width: 900px) {
+    // Two rows instead of three (SPEC D2): wordmark + location share the
+    // top row, nav gets the second — saves ~36px of viewport over the hero.
     .k-top {
-      grid-template-columns: 1fr;
-      text-align: center;
-      .l, .c, .r { justify-content: center; }
+      grid-template-columns: auto auto;
+      grid-template-areas:
+        "l r"
+        "c c";
+      gap: 14px 20px;
+      .l { grid-area: l; }
+      .r { grid-area: r; }
+      .c { grid-area: c; justify-content: center; flex-wrap: wrap; }
     }
   }
 </style>

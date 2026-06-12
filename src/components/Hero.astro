@@ -49,7 +49,9 @@ const {
     position: relative;
     z-index: 2;
     padding: 60px 28px 40px;
-    min-height: 100vh;
+    // svh: stable on iOS Safari where 100vh overshoots the visible
+    // viewport under the URL bar (same fix as /clock, d225c8b)
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

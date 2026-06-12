@@ -118,6 +118,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 footer.site-foot {
   position: relative;
   z-index: 2;
+  // clips the wordmark bleed at the footer edge — same bottom-cropped
+  // look, without 60px of dead scroll past the page end (SPEC D4)
+  overflow: hidden;
   border-top: 1px solid $line;
   padding: 36px 28px 40px;
   display: grid;
@@ -178,6 +181,11 @@ body[data-motion="off"] * {
   footer.site-foot {
     grid-template-columns: 1fr;
     text-align: center;
+    padding-bottom: 86px; // room so the wordmark bleed clears the links
     .r { text-align: center; }
+
+    // at the 6rem clamp floor the -60px bleed left a ~19px sliver;
+    // show most of the letterforms instead (SPEC D4)
+    .wordmark { inset: auto 0 -0.12em 0; }
   }
 }
