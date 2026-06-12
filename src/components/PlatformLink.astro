@@ -4,11 +4,12 @@ interface Props {
   num: string;      // "01 / stream"
   label: string;    // "Spotify"
   sub: string;      // "monthly listeners · full catalogue"
+  rel?: string;     // extra rel tokens, e.g. "me" for identity links
 }
-const { href, num, label, sub } = Astro.props;
+const { href, num, label, sub, rel } = Astro.props;
 ---
 
-<a href={href} target="_blank" rel="noopener">
+<a href={href} target="_blank" rel={rel ? `noopener ${rel}` : "noopener"}>
   <div class="num">{num}</div>
   <slot />
   <div>

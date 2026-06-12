@@ -66,6 +66,14 @@
       background: var(--accent);
       opacity: 1;
     }
+
+    // 96 bars × 4px of unshrinkable margin = 384px minimum content
+    // width — at phone widths every bar collapsed to 0px (invisible).
+    // Halve the margins and drop alternate bars so the band fits.
+    @media (max-width: 600px) {
+      .bar { margin: 0 1px; }
+      .bar:nth-child(odd):not(.hot) { display: none; }
+    }
   }
 
   .k-wave-wrap { position: relative; }

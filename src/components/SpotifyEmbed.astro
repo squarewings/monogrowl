@@ -26,17 +26,35 @@ const src = `https://open.spotify.com/embed/artist/${artistId}?utm_source=genera
       </div>
     </div>
     <div class="r">
-      <iframe
-        src={src}
-        width="100%"
-        height="352"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"
-        title="Monogrowl on Spotify"
-      ></iframe>
+      <!-- Click-to-load facade (SPEC N1): the Spotify iframe (~1MB of
+           third-party payload) is only injected on interaction. -->
+      <button class="facade" type="button" data-embed-src={src}>
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+        Load the Spotify player
+      </button>
     </div>
   </div>
 </section>
+
+<script>
+  const facade = document.querySelector<HTMLButtonElement>(".k-now .facade");
+  facade?.addEventListener("click", () => {
+    const iframe = document.createElement("iframe");
+    iframe.src = facade.dataset.embedSrc!;
+    iframe.width = "100%";
+    iframe.height = "352";
+    iframe.loading = "lazy";
+    iframe.title = "Monogrowl on Spotify";
+    iframe.allow =
+      "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+    facade.replaceWith(iframe);
+    iframe.focus();
+  });
+</script>
 
 <style lang="scss">
   @use "../styles/tokens" as *;
@@ -115,6 +133,32 @@ const src = `https://open.spotify.com/embed/artist/${artistId}?utm_source=genera
       min-height: 352px;
       border: 0;
       background: transparent;
+    }
+
+    .facade {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 24px;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: background .3s, color .3s, box-shadow .3s;
+
+      .play {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      &:hover {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 0 0 40px color-mix(in oklab, var(--accent) 40%, transparent);
+      }
     }
   }
 
