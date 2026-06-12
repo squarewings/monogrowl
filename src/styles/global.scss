@@ -74,7 +74,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: $dim;
+  color: $dim-2;
 }
 
 // grain + scanlines (applied to <body> on hero screens)
@@ -127,7 +127,7 @@ footer.site-foot {
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #777;
+  color: $dim-2;
   align-items: center;
 
   .c { text-align: center; color: $fg; }
