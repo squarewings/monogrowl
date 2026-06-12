@@ -1,6 +1,27 @@
 ---
-import { Font } from 'astro:assets';
+import { Font, getImage } from 'astro:assets';
 import { RELEASES } from '../data/releases';
+
+// Schema images use the same optimized 800px webp the cards serve —
+// stable URLs across builds (vs hashed originals) and the full-size
+// source JPGs no longer ship in dist just for crawlers.
+const schemaImages = Object.fromEntries(
+  await Promise.all(
+    RELEASES.map(async (r) => [
+      r.title,
+      // identical params to ReleaseCard's fallback src so the transform
+      // dedupes to the same file instead of emitting a second webp
+      (
+        await getImage({
+          src: r.image,
+          width: Math.min(800, r.image.width),
+          format: "webp",
+          quality: 80,
+        })
+      ).src,
+    ]),
+  ),
+);
 
 interface Props {
   title: string;
@@ -110,7 +131,7 @@ const absoluteOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogIm
             datePublished: String(r.year),
             byArtist: { "@id": `${siteUrl}/#artist` },
             albumReleaseType: "https://schema.org/SingleRelease",
-            image: `${siteUrl}${r.image.src}`,
+            image: `${siteUrl}${schemaImages[r.title]}`,
             url: r.listenUrl,
             numTracks: r.tracks.length,
             track: r.tracks.map((t, i) => ({

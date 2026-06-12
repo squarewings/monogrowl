@@ -70,8 +70,10 @@ const { href = "https://visualiser.monogrowl.com" } = Astro.props;
     };
 
     let t = 0;
-    const frame = () => {
-      t += 0.014;
+    const frame = (dt: number) => {
+      // time-based, not call-based, so the 30fps cap doesn't slow the
+      // animation: 0.014 per 60fps frame ≡ 0.84 per second
+      t += dt * 0.00084;
       const w = c.clientWidth,
         h = c.clientHeight;
       const [r, g, b] = accentRGB();

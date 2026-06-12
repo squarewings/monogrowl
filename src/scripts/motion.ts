@@ -43,7 +43,9 @@ export function rafLoop(
     if (!shouldRun()) return;
     if (now - last >= interval) {
       draw(now - last);
-      last = now;
+      // carry the remainder so an fps cap doesn't quantize to the rAF
+      // grid (a bare `last = now` turns 30fps into ~22fps on 60Hz)
+      last = interval ? now - ((now - last) % interval) : now;
     }
     rafId = requestAnimationFrame(tick);
   };

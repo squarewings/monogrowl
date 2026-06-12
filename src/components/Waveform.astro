@@ -24,7 +24,14 @@
 
   const wrap = document.querySelector<HTMLElement>(".k-wave");
   if (wrap) {
-    const bars = Array.from(wrap.querySelectorAll<HTMLElement>(".bar"));
+    const all = Array.from(wrap.querySelectorAll<HTMLElement>(".bar"));
+    // Don't write heights to bars display:none'd by the ≤600px rule;
+    // re-collect when the breakpoint flips (rotation, window resize).
+    const visibleBars = () => all.filter((b) => b.offsetParent !== null);
+    let bars = visibleBars();
+    window
+      .matchMedia("(max-width: 600px)")
+      .addEventListener("change", () => (bars = visibleBars()));
     let t = 0;
     rafLoop(wrap, () => {
       t += 0.05;
