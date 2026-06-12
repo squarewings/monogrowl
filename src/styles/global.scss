@@ -1,13 +1,7 @@
-// ── TOKENS ───────────────────────────────────────────
-$bg: #060608;
-$fg: #f3f3ef;
-$dim: #6e6e6a;
-$line: rgba(255, 255, 255, 0.08);
-$accent: #caff00;
-
-// Ledger tokens (Direction 02)
-$ledger-bg: #050505;
-$ledger-line: #1a1a1a;
+// ── GLOBAL RULES (imported ONCE, via Layout.astro) ───
+// Tokens live in _tokens.scss; components @use that partial,
+// never this file, so these rules are emitted a single time.
+@use "tokens" as *;
 
 :root {
   // --font-serif, --font-body, --font-mono are set by Astro's <Font> component
@@ -51,31 +45,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: $dim;
 }
 
-// striped placeholder (remove once real imagery loaded in)
-.ph {
-  position: relative;
-  overflow: hidden;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.04) 0 14px,
-      rgba(255, 255, 255, 0.1) 14px 28px
-    );
-  border: 1px solid $line;
-
-  &::after {
-    content: attr(data-label);
-    position: absolute;
-    inset: auto 0 0 0;
-    padding: 9px 11px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.55);
-  }
-}
-
 // grain + scanlines (applied to <body> on hero screens)
 .fx-grain::before {
   content: "";
@@ -111,10 +80,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 @keyframes scrollX {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
-}
-@keyframes eq {
-  0%, 100% { height: 18%; }
-  50% { height: 95%; }
 }
 
 // ── FOOTER (shared) ──────────────────────────────────

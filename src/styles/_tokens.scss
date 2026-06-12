@@ -1,0 +1,14 @@
+// ── DESIGN TOKENS ────────────────────────────────────
+// Variables ONLY — this partial must emit zero CSS.
+// Concrete rules live in global.scss, which is imported
+// exactly once via Layout.astro <style is:global>.
+$bg: #060608;
+$fg: #f3f3ef;
+$dim: #6e6e6a;
+$dim-2: #8a8a85; // ≥4.5:1 on $bg/#07070a — use for 10–11px microcopy
+$line: rgba(255, 255, 255, 0.08);
+$accent: #caff00;
+
+// Ledger tokens (Direction 02)
+$ledger-bg: #050505;
+$ledger-line: #1a1a1a;
