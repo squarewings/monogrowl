@@ -61,13 +61,17 @@ window.onerror = function(m, s, l, c){ const e=document.getElementById('err');
   e.style.display='block'; e.textContent='Error: '+m+' @'+l+':'+c; };
 
 /* ============================== CORE ============================== */
-const W=256, H=224, TS=16;
+// Logical resolution stays 256x224; the backing store is SS x that so text
+// (and any vector drawing) rasterises sharp while sprites stay chunky.
+const W=256, H=224, TS=16, SS=3;
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+cv.width=W*SS; cv.height=H*SS;
+ctx.setTransform(SS,0,0,SS,0,0);
 ctx.imageSmoothingEnabled=false;
 function fitCanvas(){
   const stage=document.getElementById('stage');
-  const avail=window.innerHeight, cw=Math.min(window.innerWidth, 560);
-  const ctrlMin=170;
+  const avail=window.innerHeight, cw=Math.min(window.innerWidth, 768);
+  const ctrlMin=148;
   let scale=Math.min(cw/W, (avail-ctrlMin)/H);
   scale=Math.max(1, Math.floor(scale*4)/4);
   cv.style.width=(W*scale)+'px'; cv.style.height=(H*scale)+'px';
@@ -227,6 +231,13 @@ const Music={
     this.timer=setInterval(()=>this.tick(),90);
   },
   stop(){ if(this.timer){clearInterval(this.timer);this.timer=null;} this.cur=null; },
+  jingle(id,resume){ // one-shot sting, then hand off (or restore what was playing)
+    const back=resume!==undefined?resume:this.cur;
+    this.play(id);
+    clearTimeout(this._jt);
+    this._jt=setTimeout(()=>{ if(this.cur===id){ this.cur=null;
+      if(back)this.play(back); else this.stop(); } },(SONGS[id].durMs||1500)+150);
+  },
   tick(){
     const song=SONGS[this.cur]; if(!song||!AC)return;
     const beat=60/song.bpm, horizon=AC.currentTime+0.32;
@@ -305,6 +316,39 @@ const SONGS={
     {wave:'sine',vol:0.12,stac:0.95,seq:[['C5',2],['B4',2],['A4',2],['Ab4',4],['A4',6]]},
   ]},
 };
+/* Generated from audio/*.mid + the MBB theme by midiconv.js — do not hand-edit.
+   Title music and stings are chiptune covers of the real Men Behaving Badly cues. */
+Object.assign(SONGS,{
+  title:{bpm:228,loop:true,durMs:75789,tracks:[
+    {wave:'square',vol:0.11,stac:0.85,seq:[['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['G3',2],['D#4',1],['F3',2],['F#3',1],['G3',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['B3',2],['D4',1],['C4',3.5],[null,1],['C4',0.5],['D#4',1],['C4',0.5],['G#4',1.5],['G4',1.5],['F4',1],['D#4',0.5],[null,1],['Bb4',2],['G#4',1.5],['G4',1.5],['F4',1.5],['B4',1.5],['C5',1],['D5',1.5],['G4',0.5],[null,1],['D#5',2],['D5',1.5],['C5',1.5],['Bb4',1.5],['F4',1.5],['G4',1],['G#4',1.5],['Bb4',0.5],['Bb4',1],['C5',1.5],['D5',1.5],['D#5',1.5],['F5',1.5],['G5',9.25],[null,1.25],['C4',0.5],['D#4',1],['C4',0.5],['G#4',1.5],['G4',1.5],['F4',1],['D#4',0.5],[null,1],['Bb4',2],['G#4',1.5],['G4',1.5],['F4',1.5],['B4',1.5],['C5',1],['D5',1.5],['G4',0.5],[null,1],['D#5',2],['D5',1.5],['C5',1.5],['Bb4',1.5],['F4',1.5],['G4',1],['G#4',1.5],['Bb4',0.5],['Bb4',1],['C5',1.5],['D5',1.5],['D#5',1.5],['F5',1.5],['G5',9.25],[null,1.25],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['G3',2],['D#4',1],['F3',2],['F#3',1],['G3',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['B3',2],['D4',1],['C4',3.5],[null,1]]},
+    {wave:'square',vol:0.06,stac:0.85,seq:[[null,1.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,16],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,16.5],['C4',4.5],[null,1],['D4',6.25],[null,0.25],['G4',4],[null,1.5],['G4',6.25],[null,0.25],['C4',1.5],[null,1],['F4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['D5',9.25],[null,3.25],['C4',4.5],[null,1],['D4',6.25],[null,0.25],['G4',4],[null,1.5],['G4',6.25],[null,0.25],['C4',1.5],[null,1],['F4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['D5',9.25],[null,2.75],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,16],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,14.5]]},
+    {wave:'triangle',vol:0.16,stac:0.8,seq:[[null,2],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',2],[null,1],['F2',2],['F#2',1],['G2',0.5],[null,3],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',0.5],['G2',1.5],[null,1],['C2',3.25],[null,3.25],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['G2',1.5],[null,1.5],['B2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['F3',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['D3',1.5],[null,1.5],['G3',1.5],['D3',1.5],['G2',1.5],[null,1.5],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['G2',1.5],[null,1.5],['B2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['F3',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['D3',1.5],[null,1.5],['G3',1.5],['D3',1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',2],[null,1],['F2',2],['F#2',1],['G2',0.5],[null,3],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',0.5],['G2',1.5],[null,1],['C2',3.25],[null,1.25]]},
+  ]},
+  fanfare:{bpm:228,loop:false,durMs:1974,tracks:[
+    {wave:'square',vol:0.15,stac:0.9,seq:[['C4',0.5],['D#4',1],['G4',0.5],['Bb4',1],['C5',0.5],['C5',4]]},
+    {wave:'square',vol:0.09,stac:0.9,seq:[[null,3.5],['G4',4]]},
+    {wave:'triangle',vol:0.15,stac:0.9,seq:[['C3',1.5],['G2',1.5],['Bb2',0.5],['C3',3.75],[null,0.25]]},
+    {wave:'square',vol:0.09,stac:0.9,seq:[['C2',1.5],[null,2],['C2',3.75],[null,0.25]]},
+  ]},
+  gameover:{bpm:228,loop:false,durMs:2368,tracks:[
+    {wave:'triangle',vol:0.15,stac:0.95,seq:[['G4',1.5],['F#4',1],['F4',0.5],['E4',1],['D#4',5]]},
+    {wave:'sine',vol:0.1,stac:0.95,seq:[['G3',1.5],['F#3',1],['F3',0.5],['E3',1],['Bb3',5]]},
+    {wave:'triangle',vol:0.14,stac:0.95,seq:[['G2',1.5],['F#2',1],['F2',0.5],['E3',1],['C3',4.75],[null,0.25]]},
+    {wave:'sine',vol:0.1,stac:0.95,seq:[[null,4],['C2',4.75],[null,0.25]]},
+  ]},
+  battlesting:{bpm:228,loop:false,durMs:1579,tracks:[
+    {wave:'square',vol:0.13,stac:0.8,seq:[['D4',1],['D4',0.5],['D4',1],['F4',0.5],['D#4',3]]},
+    {wave:'square',vol:0.08,stac:0.8,seq:[['B3',1],['B3',0.5],['B3',1],['B3',0.5],['C4',3]]},
+    {wave:'sawtooth',vol:0.13,stac:0.7,seq:[['G2',1],['G2',0.5],['G2',1],['G#2',0.5],['G2',2.75],[null,0.25]]},
+    {wave:'square',vol:0.08,stac:0.8,seq:[[null,3],['C2',2.75],[null,0.25]]},
+  ]},
+  itemget:{bpm:228,loop:false,durMs:1053,tracks:[
+    {wave:'square',vol:0.14,stac:0.9,seq:[['C5',0.5],['D#5',0.5],['G5',0.5],['A5',2.5]]},
+    {wave:'square',vol:0.08,stac:0.9,seq:[[null,1.5],['G5',2.5]]},
+    {wave:'triangle',vol:0.13,stac:0.9,seq:[['G3',1.5],['C4',2.25],[null,0.25]]},
+    {wave:'square',vol:0.08,stac:0.9,seq:[['C3',1.5],['C3',2.25],[null,0.25]]},
+  ]},
+});
 
 /* ============================ RENDER HELPERS ============================ */
 function text(s,x,y,color,size){
@@ -340,79 +384,191 @@ function bar(x,y,w,h,pct,c1,c2){
 
 /* ============================== SPRITES ============================== */
 const SPR={}; // id -> offscreen canvas
-function buildSprite(id,rows,pal){
-  const h=rows.length,w=rows[0].length;
+function shadeHex(hex,f){ // f>0 lighten toward white, f<0 darken toward black
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  if(f>=0){ r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
+  else { r*=1+f; g*=1+f; b*=1+f; }
+  return '#'+((1<<24)|(Math.round(r)<<16)|(Math.round(g)<<8)|Math.round(b)).toString(16).slice(1);
+}
+function buildSprite(id,rows,pal,fx){
+  const h=rows.length,w=Math.max(...rows.map(r=>r.length));
   const c=document.createElement('canvas'); c.width=w; c.height=h;
   const g=c.getContext('2d');
-  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  for(let y=0;y<h;y++)for(let x=0;x<rows[y].length;x++){
     const ch=rows[y][x]; if(ch==='.'||ch===' ')continue;
     g.fillStyle=pal[ch]||'#f0f'; g.fillRect(x,y,1,1);
   }
+  if(fx){ // 16-bit pass: dark outline around silhouette, top rim-light, under-shade
+    const img=g.getImageData(0,0,w,h), d=img.data, src=new Uint8ClampedArray(d);
+    const a=(x,y)=>(x<0||x>=w||y<0||y>=h)?0:src[(y*w+x)*4+3];
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      if(!src[i+3]){
+        if(a(x-1,y)||a(x+1,y)||a(x,y-1)||a(x,y+1)){ d[i]=24;d[i+1]=20;d[i+2]=40;d[i+3]=255; }
+      }else if(!a(x,y-1)){ d[i]=Math.min(255,src[i]+38); d[i+1]=Math.min(255,src[i+1]+38); d[i+2]=Math.min(255,src[i+2]+34); }
+      else if(!a(x,y+1)){ d[i]=src[i]*0.72; d[i+1]=src[i+1]*0.72; d[i+2]=src[i+2]*0.72; }
+    }
+    g.putImageData(img,0,0);
+  }
   SPR[id]=c;
 }
+function drawSprB(id,x,footY,scale,flip){ // bottom-anchored draw: footY = baseline
+  const s=SPR[id]; if(!s)return;
+  drawSpr(id,x,footY-s.height*(scale||1),scale,flip);
+}
 function humanSprite(id,o){
-  // 12x16 person. o: {hair,hairC,skinC,shirtC,pantsC,dress,hat,hatC,coat}
-  const H='h',F='f',E='e',S='s',P='p',B='b',A='a';
-  const pal={h:o.hairC,f:o.skinC,e:'#101020',s:o.shirtC,p:o.pantsC,b:'#2a2018',a:o.hatC||'#223'};
-  const r=[];
+  // 16x24 FF-style person, front view, hand-shaded.
+  // o: {hair,hairC,skinC,shirtC,pantsC,dress,hat,hatC,coat}
+  // palette: o outline, h/H/i hair (base/shadow/shine), f/F skin, e eyes,
+  //          s/S/t shirt, p/P trousers-or-dress, c/C coat, a/A hat, b/B shoes
+  const pal={
+    o:'#181428', e:'#181430',
+    h:o.hairC||'#555', H:shadeHex(o.hairC||'#555',-0.38), i:shadeHex(o.hairC||'#555',0.3),
+    f:o.skinC, F:shadeHex(o.skinC,-0.22),
+    s:o.shirtC, S:shadeHex(o.shirtC,-0.32), t:shadeHex(o.shirtC,0.22),
+    p:o.pantsC, P:shadeHex(o.pantsC,-0.32),
+    b:'#31241a', B:'#4c3928',
+  };
+  if(o.coat){ pal.c=o.coat; pal.C=shadeHex(o.coat,-0.28); }
+  if(o.hat){ pal.a=o.hatC||'#223'; pal.A=shadeHex(o.hatC||'#223',-0.32); }
   const hair=o.hair||'short';
-  if(o.hat){
-    r.push('..aaaaaaaa..');
-    r.push('.aaaaaaaaaa.');
-    r.push('...ffffff...');
-  }else if(hair==='short'){
-    r.push('....hhhh....');
-    r.push('...hhhhhh...');
-    r.push('...hffffh...');
-  }else if(hair==='long'){
-    r.push('....hhhh....');
-    r.push('...hhhhhh...');
-    r.push('..hhffffhh..');
-  }else if(hair==='curly'){
-    r.push('...hhhhhh...');
-    r.push('..hhhhhhhh..');
-    r.push('..hhffffhh..');
-  }else if(hair==='bob'){
-    r.push('....hhhh....');
-    r.push('..hhhhhhhh..');
-    r.push('..hhffffhh..');
-  }else if(hair==='bald'){
-    r.push('............');
-    r.push('....ffff....');
-    r.push('...hffffh...');
-  }else if(hair==='slick'){
-    r.push('...hhhhh....');
-    r.push('...hhhhhh...');
-    r.push('...hffffh...');
-  }else if(hair==='bun'){
-    r.push('..hh.hhh....');
-    r.push('...hhhhhh...');
-    r.push('...hffffh...');
-  }
-  if(hair==='long'){ r.push('..hfeffefh..'); r.push('..hffffffh..'); }
-  else if(hair==='curly'||hair==='bob'){ r.push('..hfeffefh..'); r.push('..hffffffh..'); }
-  else { r.push('...feffef...'); r.push('...ffffff...'); }
-  r.push('....ffff....');
-  const C=o.coat?'c':S; if(o.coat)pal.c=o.coat;
-  r.push('..'+C+S+S+S+S+S+S+C+'..');
-  r.push('.'+C+S+S+S+S+S+S+S+S+C+'.');
-  r.push('.'+C+S+S+S+S+S+S+S+S+C+'.');
-  r.push('.f'+C+S+S+S+S+S+S+C+'f.');
-  if(o.dress){
-    r.push('..pppppppp..');
-    r.push('..pppppppp..');
-    r.push('...pppppp...');
-    r.push('...ff..ff...');
-    r.push('...bb..bb...');
-    r.push('...bb..bb...');
+  const HEADS={
+    short:[
+      '.....oooooo.....',
+      '....ohiiiiho....',
+      '..oohhhhhhhhoo..',
+      '..ohhhhhhhhhho..',
+      '..ohHhhhhhhHho..',
+      '..ohHffffffHho..',
+      '..ohfeffffefho..',
+      '...ofeffffefo...',
+      '...offffffffo...',
+      '....oFffffFo....',
+    ],
+    long:[
+      '.....oooooo.....',
+      '....ohiiiiho....',
+      '..oohhhhhhhhoo..',
+      '..ohhhhhhhhhho..',
+      '..ohihhhhhhiho..',
+      '..ohHffffffHho..',
+      '..ohfeffffefho..',
+      '..ohfeffffefho..',
+      '..oHffffffffHo..',
+      '..oHoFffffFoHo..',
+    ],
+    curly:[
+      '....oooooooo....',
+      '...ohhihhihho...',
+      '..ohhhhhhhhhho..',
+      '.ohhihhhhhhihho.',
+      '.ohhhhhhhhhhhho.',
+      '.ohHhffffffhHho.',
+      '..ohfeffffefho..',
+      '..ohfeffffefho..',
+      '..oHffffffffHo..',
+      '..oHoFffffFoHo..',
+    ],
+    bob:[
+      '.....oooooo.....',
+      '....ohiiiiho....',
+      '..oohhhhhhhhoo..',
+      '..ohhhhhhhhhho..',
+      '..ohihhhhhhiho..',
+      '..ohhffffffhho..',
+      '..ohfeffffefho..',
+      '..ohfeffffefho..',
+      '..ohhoffffohho..',
+      '....oFffffFo....',
+    ],
+    bald:[
+      '.....oooooo.....',
+      '....offffffo....',
+      '...offffffffo...',
+      '..offffffffffo..',
+      '..oFffffffffFo..',
+      '..oHffffffffHo..',
+      '..oHfeffffefHo..',
+      '...ofeffffefo...',
+      '...offffffffo...',
+      '....oFffffFo....',
+    ],
+    slick:[
+      '.....oooooo.....',
+      '....ohhhhhho....',
+      '...ohihhhhhho...',
+      '..ohhihhhhhhho..',
+      '..ohhhhhhhhhho..',
+      '..ohHffffffHho..',
+      '..ohfeffffefho..',
+      '...ofeffffefo...',
+      '...offffffffo...',
+      '....oFffffFo....',
+    ],
+    bun:[
+      '......oooo......',
+      '.....ohhhho.....',
+      '...oohhhhhhoo...',
+      '..ohhhhhhhhhho..',
+      '..oHhhhhhhhHho..',
+      '..ohHffffffHho..',
+      '..ohfeffffefho..',
+      '...ofeffffefo...',
+      '...offffffffo...',
+      '....oFffffFo....',
+    ],
+    hat:[
+      '....oooooooo....',
+      '...oaaaaaaaao...',
+      '..oaaAaaaaAaao..',
+      '..oAAAAAAAAAAo..',
+      '.oaaaaaaaaaaaao.',
+      '..oooooooooooo..',
+      '..oFFeffffeFFo..',
+      '...ofeffffefo...',
+      '...offffffffo...',
+      '....oFffffFo....',
+    ],
+  };
+  const r=(HEADS[o.hat?'hat':hair]||HEADS.short).slice();
+  // neck (long styles keep hair falling past the jaw)
+  r.push(hair==='long'||hair==='curly'?'...ohoffffoho...':'.....offffo.....');
+  // torso
+  if(o.coat){
+    r.push('...occsssscco...');
+    r.push('..otcsssssscco..');
+    r.push('..occssssssCco..');
+    r.push('..ofcsssssscfo..');
+    r.push('...oCssssssCo...');
   }else{
-    r.push('..pppppp....'.replace('pppppp..','pppppp..'));
-    r.push('..pppppp....');
-    r.push('..pp..pp....');
-    r.push('..pp..pp....');
-    r.push('..bb..bb....');
-    r.push('.bbb..bbb...');
+    r.push('...osssssssso...');
+    r.push('..otsssssssSso..');
+    r.push('..osssssssssSo..');
+    r.push('..ofssssssssfo..');
+    r.push('...oSssssssSo...');
   }
+  if(o.dress){
+    r.push('...oppppppppo...');
+    r.push('..oppppppppppo..');
+    r.push('..opPppppppPpo..');
+    r.push('.oppppppppppppo.');
+    r.push('.opppPppppPpppo.');
+    r.push('.oPPPPPPPPPPPPo.');
+    r.push('...off....ffo...');
+    r.push('...obbo..obbo...');
+  }else{
+    r.push('...oppppppppo...');
+    r.push('...oPppppppPo...');
+    r.push('...oppo..oppo...');
+    r.push('...oppo..oppo...');
+    r.push('...oPpo..oPpo...');
+    r.push('...oppo..oppo...');
+    r.push('..obBo....obBo..');
+    r.push('..oooo....oooo..');
+  }
+  for(let i=0;i<r.length;i++)if(r[i].length!==16)throw new Error('humanSprite '+id+' row '+i+' len '+r[i].length);
+  if(r.length!==24)throw new Error('humanSprite '+id+' rows '+r.length);
   buildSprite(id,r,pal);
 }
 humanSprite('gary',{hair:'short',hairC:'#5a3a20',skinC:'#f0c090',shirtC:'#d8d8e8',pantsC:'#404058'});
@@ -443,7 +599,7 @@ buildSprite('pigeon',[
 '...gggggg.......',
 '....o..o........',
 '...oo..oo.......',
-],{g:'#8890a0',e:'#f04010',w:'#c8ccd8',b:'#e8a030',o:'#c86830'});
+],{g:'#8890a0',e:'#f04010',w:'#c8ccd8',b:'#e8a030',o:'#c86830'},1);
 buildSprite('kebab',[
 '....ddddd.......',
 '...dlmldld......',
@@ -458,7 +614,7 @@ buildSprite('kebab',[
 '....swws........',
 '.....ww.........',
 '.....ss.........',
-],{d:'#a05820',l:'#48a030',m:'#c83030',w:'#e8d8b0',e:'#d02020',s:'#b09060'});
+],{d:'#a05820',l:'#48a030',m:'#c83030',w:'#e8d8b0',e:'#d02020',s:'#b09060'},1);
 buildSprite('bin',[
 '..pppppppppppp..',
 '.pppppppppppppp.',
@@ -474,7 +630,7 @@ buildSprite('bin',[
 '..gggggggggggg..',
 '...gggggggggg...',
 '...ww......ww...',
-],{p:'#385838',g:'#487048',e:'#f0e040',m:'#282828',w:'#333'});
+],{p:'#385838',g:'#487048',e:'#f0e040',m:'#282828',w:'#333'},1);
 buildSprite('copier',[
 '..llllllllllll....',
 '.llddddddddddll...',
@@ -489,7 +645,7 @@ buildSprite('copier',[
 '.gggggggggggggg...',
 '.gggggggggggggg...',
 '..gg.gggggg.gg....',
-],{l:'#c8ccd8',d:'#181820',g:'#a0a4b0',w:'#e8f0f8',e:'#e03030',r:'#282838',k:'#40e040'});
+],{l:'#c8ccd8',d:'#181820',g:'#a0a4b0',w:'#e8f0f8',e:'#e03030',r:'#282838',k:'#40e040'},1);
 buildSprite('anecdote',[
 '.....wwwww......',
 '....wwwwwww.....',
@@ -505,7 +661,7 @@ buildSprite('anecdote',[
 '..w..wwwww..w...',
 '.....w.w.w......',
 '....w..w..w.....',
-],{w:'#c8c8d8',g:'#8890a8',e:'#404868',m:'#606880'});
+],{w:'#c8c8d8',g:'#8890a8',e:'#404868',m:'#606880'},1);
 buildSprite('cabinet',[
 '.gggggggggggg...',
 '.gddddddddddg...',
@@ -523,7 +679,7 @@ buildSprite('cabinet',[
 '.gddddddddddg...',
 '.gggggggggggg...',
 '.gg........gg...',
-],{g:'#788088',d:'#585e66',e:'#f0e040',m:'#303038'});
+],{g:'#788088',d:'#585e66',e:'#f0e040',m:'#303038'},1);
 buildSprite('alarmboss',[
 '............................',
 '.....rrrrrrrrrrrrrrrrrr.....',
@@ -550,7 +706,7 @@ buildSprite('alarmboss',[
 '........sBBs..sBBs..........',
 '.........................zz.',
 '..zz.................zz.....',
-],{r:'#c83030',w:'#f8f0e8',e:'#f8e030',m:'#401818',s:'#888ea0',y:'#d8b030',B:'#c8a020',z:'#f8e030'});
+],{r:'#c83030',w:'#f8f0e8',e:'#f8e030',m:'#401818',s:'#888ea0',y:'#d8b030',B:'#c8a020',z:'#f8e030'},1);
 buildSprite('fearboss',[
 '..........pppppppppppp..........',
 '.......pppPPPPPPPPPPPPppp.......',
@@ -578,7 +734,7 @@ buildSprite('fearboss',[
 '...gyyg........gyyg.............',
 '....gg.........gyyg.............',
 '................gg..............',
-],{p:'#282040',P:'#3c3060',r:'#f03838',w:'#e8e8f8',b:'#181028',g:'#e8c838',y:'#f8f0d0'});
+],{p:'#282040',P:'#3c3060',r:'#f03838',w:'#e8e8f8',b:'#181028',g:'#e8c838',y:'#f8f0d0'},1);
 buildSprite('sofa',[
 '.mmmmmmmmmmmmmmmmmmmmmmmmmmmm..',
 'mmccccccccccccmmccccccccccccmm.',
@@ -589,7 +745,7 @@ buildSprite('sofa',[
 'mcccccccccccccccccccccccccccm..',
 'mcccccccccccccccccccccccccccm..',
 '.mm..mm..............mm..mm....',
-],{m:'#5a3820',c:'#a06838',s:'#c08850',t:'#b07840'});
+],{m:'#5a3820',c:'#a06838',s:'#c08850',t:'#b07840'},1);
 
 function drawSpr(id,x,y,scale,flip){
   const s=SPR[id]; if(!s)return;
@@ -1232,7 +1388,7 @@ async function fieldInteract(){
   } finally { busy--; }
 }
 async function openChest(key,c){
-  G.flags['chest_'+G.map+'_'+key]=true; SFX.chest();
+  G.flags['chest_'+G.map+'_'+key]=true; SFX.chest(); Music.jingle('itemget');
   if(c.quid){ G.quid+=c.quid; await say(['Found '+c.quid+' quid down the back of it!']); }
   else if(c.weapon){ G.gear.w.push(c.weapon); await say(['Found a '+WEAPONS[c.weapon].name+'!']); }
   else if(c.armor){ G.gear.a.push(c.armor); await say(['Found a '+ARMOR[c.armor].name+'!']); }
@@ -1267,10 +1423,10 @@ function drawField(){
   const ents=[];
   m.npcs.forEach(n=>{ if(!n.cond||n.cond())ents.push({y:n.y*TS,f:()=>{
     const bob=((Date.now()>>9)%2)?0:-1;
-    drawSpr(n.spr,n.x*TS+2-cx,n.y*TS-4+bob-cy); }}); });
+    drawSpr(n.spr,n.x*TS-cx,n.y*TS-12+bob-cy); }}); });
   ents.push({y:py,f:()=>{
     const bob=G.moving&&((Date.now()>>7)%2)?-1:0;
-    drawSpr(G.party[0]?G.chars[G.party[0]].spr:'gary',px+2-cx,py-4+bob-cy,1,G.dir==='lf');
+    drawSpr(G.party[0]?G.chars[G.party[0]].spr:'gary',px-cx,py-12+bob-cy,1,G.dir==='lf');
   }});
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.f());
   if(G.mapMsgT>0&&!busy){
@@ -1286,7 +1442,7 @@ async function fieldMenu(){
       win(4,4,150,G.party.length*30+12);
       G.party.forEach((id,i)=>{
         const c=G.chars[id];
-        drawSpr(c.spr,12,12+i*30);
+        drawSpr(c.spr,12,8+i*30);
         text(c.name,32,10+i*30,'#fff'); text('L'+c.lvl,86,10+i*30,'#a0c0ff');
         text('HP '+fmtHP(c),32,20+i*30,c.hp<c.maxhp*0.3?'#ffd040':'#c8d0e0');
         text('BP '+c.bp+'/'+c.maxbp,104,20+i*30,'#c8d0e0');
@@ -1500,7 +1656,7 @@ async function eventAlarm(){
 async function hotSafe(){
   if(!G.flags.alarmDone){ await say(['The safe hums, sealed tight while the alarm is having its episode.']); return; }
   if(G.flags.hasGift){ await say(['Empty now, bar a bulldog clip and a fossilised Polo.']); return; }
-  G.flags.hasGift=true; SFX.chest();
+  G.flags.hasGift=true; SFX.chest(); Music.jingle('itemget');
   await say(['Got the ANNIVERSARY PRESENT!','GARY: One anniversary present. Slightly dusty. Still magnificent.',
     'TONY: What is it?','GARY: ...I genuinely cannot remember.',
     'TONY: Right, back to DEBORAH’S FLAT -- the upstairs door on Crescent Road, next to ours.']);
@@ -1562,17 +1718,17 @@ function drawEnding(){
     ctx.fillStyle='#a04848'; ctx.fillRect(0,140,W,84);
     ctx.fillStyle='#886048'; ctx.fillRect(98,52,60,36);
     textC('REGISTRY OFFICE',W/2,14,'#604830');
-    drawSpr('gary',92,100,2); drawSpr('dorothy',134,100,2);
-    drawSpr('tony',40,110,2); drawSpr('debs',196,110,2);
+    drawSpr('gary',92,84,2); drawSpr('dorothy',134,84,2);
+    drawSpr('tony',40,94,2); drawSpr('debs',196,94,2);
     ctx.save();
-    ctx.translate(112,142); ctx.rotate(Math.PI/2); drawSpr('registrar',0,-16,2);
+    ctx.translate(112,142); ctx.rotate(Math.PI/2); drawSpr('registrar',0,-24,2);
     ctx.restore();
   } else if(ENDSCENE==='sofa'){
     ctx.fillStyle='#b8a878'; ctx.fillRect(0,0,W,H);
     ctx.fillStyle='#a08858'; for(let i=0;i<26;i++)ctx.fillRect(i*10+2,6,2,150);
     ctx.fillStyle='#6a7a52'; ctx.fillRect(0,120,W,104);
     drawSpr('sofa',64,90,4);
-    drawSpr('gary',96,68,2); drawSpr('tony',150,68,2);
+    drawSpr('gary',96,52,2); drawSpr('tony',150,52,2);
     ctx.drawImage(TILES.tv,40,150,32,32); ctx.drawImage(TILES.cans,190,150,32,32);
   } else {
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
@@ -1589,12 +1745,12 @@ async function startBattle(form,opts){
   busy++;
   SFX.swirl();
   // swirl transition
-  const snap=document.createElement('canvas'); snap.width=W; snap.height=H;
+  const snap=document.createElement('canvas'); snap.width=cv.width; snap.height=cv.height;
   snap.getContext('2d').drawImage(cv,0,0);
   for(let i=0;i<26;i++){ await waitFrame();
-    ctx.drawImage(snap,0,0);
+    ctx.drawImage(snap,0,0,W,H);
     ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(i*0.18); ctx.scale(1-i*0.035,1-i*0.035);
-    ctx.translate(-W/2,-H/2); ctx.globalAlpha=0.55; ctx.drawImage(snap,0,0); ctx.restore();
+    ctx.translate(-W/2,-H/2); ctx.globalAlpha=0.55; ctx.drawImage(snap,0,0,W,H); ctx.restore();
     ctx.fillStyle='rgba(0,0,16,'+(i/30)+')'; ctx.fillRect(0,0,W,H);
   }
   const bbg=opts.bbg||MAPS[G.map].bbg||'street';
@@ -1604,7 +1760,7 @@ async function startBattle(form,opts){
     const d=ENEMIES[id];
     const big=d.big?1:0;
     B.enemies.push({id,name:d.name,spr:d.spr,hp:d.hp,maxhp:d.hp,atk:d.atk,def:d.def,mag:d.mag,
-      spd:d.spd,exp:d.exp,quid:d.quid,ai:d.ai,boss:d.boss,atb:R(45),status:{},dead:false,fade:1,
+      spd:d.spd,exp:d.exp,quid:d.quid,ai:d.ai,boss:d.boss,big:!!d.big,atb:R(45),status:{},dead:false,fade:1,
       x:big?24:16+ (i%2)*14, y:big?26:26+i*32, sc:d.boss?2:2, ox:0});
   });
   if(B.enemies.length===1&&!B.enemies[0].boss){ B.enemies[0].y=44; }
@@ -1613,7 +1769,7 @@ async function startBattle(form,opts){
     B.players.push({c,atb:R(55),status:{},defend:false,x:198,y:20+i*30,ox:0,despUsed:false});
   });
   const prevMode=G.mode; G.mode='battle';
-  Music.play(opts.boss?'boss':'battle');
+  Music.jingle('battlesting',opts.boss?'boss':'battle');
   const result=await battleLoop();
   if(result==='lose'){ B=null; await gameOver(); busy--; return 'lose'; }
   G.mode='field';
@@ -1879,7 +2035,7 @@ function drawBattle(){
   for(const e of B.enemies){
     if(e.dead&&e.fade<=0)continue;
     ctx.globalAlpha=e.fade;
-    drawSpr(e.spr,e.x+e.ox,e.y,e.sc);
+    drawSprB(e.spr,e.x+e.ox,e.y+(e.big?52:32),e.sc);
     ctx.globalAlpha=1;
     if(e.status.sleep)text('z',e.x+SPR[e.spr].width*e.sc-4,e.y-6,'#a0c0ff');
     if(e.status.poison)text('psn',e.x-2,e.y-6,'#b0f070');
@@ -1889,7 +2045,7 @@ function drawBattle(){
     if(c.hp<=0){ ctx.save(); ctx.translate(p.x+p.ox+4,p.y+30); ctx.rotate(-Math.PI/2);
       ctx.globalAlpha=0.8; drawSpr(c.spr,0,0,2); ctx.restore(); ctx.globalAlpha=1; continue; }
     const crouch=c.hp<c.maxhp*0.25?2:0;
-    drawSpr(c.spr,p.x+p.ox,p.y+crouch,2,true);
+    drawSprB(c.spr,p.x+p.ox,p.y+32+crouch,2,true);
     if(p.status.sleep)text('z',p.x-6,p.y-4,'#a0c0ff');
     if(p.status.poison)text('psn',p.x+22,p.y-4,'#b0f070');
     if(B.activeP===p)cursorHand(p.x-12,p.y+10);
@@ -1942,7 +2098,7 @@ function drawTitle(){
   ctx.fillStyle='#f8e8a0';
   for(let i=0;i<28;i++){ const x=(i*97)%W, y=(i*53)%110; ctx.fillRect(x,y,1,1); }
   drawSpr('sofa',66,120,4);
-  drawSpr('gary',98,96,2); drawSpr('tony',138,96,2);
+  drawSpr('gary',98,80,2); drawSpr('tony',138,80,2);
   textC('MEN BEHAVING BADLY',W/2,28,'#ffe080',15);
   textC('~ LAGER FANTASY ~',W/2,50,'#a0c0ff',10);
   win(78,168,100,44);
