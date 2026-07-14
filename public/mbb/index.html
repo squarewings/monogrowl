@@ -164,10 +164,34 @@ function unlockAudio(){
   if(AC) { if(AC.state==='suspended')AC.resume(); return; }
   try{
     AC=new (window.AudioContext||window.webkitAudioContext)();
-    masterG=AC.createGain(); masterG.gain.value=0.55; masterG.connect(AC.destination);
+    // gentle lowpass on everything ~ the SNES Gaussian interpolation warmth
+    masterG=AC.createGain(); masterG.gain.value=0.55;
+    const warmth=AC.createBiquadFilter(); warmth.type='lowpass';
+    warmth.frequency.value=9500; warmth.Q.value=0.4;
+    masterG.connect(warmth); warmth.connect(AC.destination);
     musicG=AC.createGain(); musicG.gain.value=0.42; musicG.connect(masterG);
+    // SPC700-style echo on the music bus: short feedback delay, damped highs
+    const dly=AC.createDelay(0.5); dly.delayTime.value=0.15;
+    const damp=AC.createBiquadFilter(); damp.type='lowpass'; damp.frequency.value=3600;
+    const fb=AC.createGain(); fb.gain.value=0.34;
+    const wet=AC.createGain(); wet.gain.value=0.22;
+    musicG.connect(dly); dly.connect(damp); damp.connect(fb); fb.connect(dly);
+    damp.connect(wet); wet.connect(masterG);
     if(Music.pending){ Music.play(Music.pending); }
   }catch(err){}
+}
+/* pulse-width + soft-lead instruments beyond the 4 stock oscillator types */
+const WAVES={};
+function getWave(name){
+  if(WAVES[name])return WAVES[name];
+  const real=new Float32Array(24), imag=new Float32Array(24);
+  if(name==='pulse25'||name==='pulse12'){
+    const d=name==='pulse25'?0.25:0.125;
+    for(let n=1;n<24;n++)imag[n]=(2/(n*Math.PI))*Math.sin(n*Math.PI*d);
+  }else{ // 'flute': mellow near-sine with a touch of body
+    imag[1]=1; imag[2]=0.28; imag[3]=0.1; imag[4]=0.04;
+  }
+  return WAVES[name]=AC.createPeriodicWave(real,imag);
 }
 let noiseBuf=null;
 function getNoise(){
@@ -182,14 +206,28 @@ function nf(name){ // 'A4' -> freq
   const m=name.match(/^([A-G][b#]?)(\d)$/); if(!m)return 440;
   return 440*Math.pow(2,(NOTE[m[1]]-9)/12 + (parseInt(m[2])-4));
 }
-function tone(freq,start,dur,wave,vol,dest,slide){
+function tone(freq,start,dur,wave,vol,dest,slide,pan){
   const o=AC.createOscillator(), g=AC.createGain();
-  o.type=wave; o.frequency.setValueAtTime(freq,start);
+  if(wave==='square'||wave==='triangle'||wave==='sine'||wave==='sawtooth')o.type=wave;
+  else o.setPeriodicWave(getWave(wave));
+  o.frequency.setValueAtTime(freq,start);
   if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,slide),start+dur);
-  g.gain.setValueAtTime(vol,start);
-  g.gain.setValueAtTime(vol,start+dur*0.7);
+  // ADSR instead of a flat gate
+  g.gain.setValueAtTime(0.0001,start);
+  g.gain.linearRampToValueAtTime(vol,start+0.012);
+  g.gain.linearRampToValueAtTime(vol*0.8,start+Math.min(0.12,dur*0.4));
+  g.gain.setValueAtTime(vol*0.8,start+dur*0.75);
   g.gain.linearRampToValueAtTime(0.0001,start+dur);
-  o.connect(g); g.connect(dest||masterG);
+  // vibrato eases in on sustained notes
+  if(dur>0.22&&!slide){
+    const lf=AC.createOscillator(), lg=AC.createGain();
+    lf.frequency.value=5.6; lg.gain.value=freq*0.007;
+    lf.connect(lg); lg.connect(o.frequency);
+    lf.start(start+0.12); lf.stop(start+dur+0.02);
+  }
+  let tail=g;
+  if(pan&&AC.createStereoPanner){ const p=AC.createStereoPanner(); p.pan.value=pan; g.connect(p); tail=p; }
+  o.connect(g); tail.connect(dest||masterG);
   o.start(start); o.stop(start+dur+0.02);
 }
 function noiseHit(start,dur,vol,hp){
@@ -249,7 +287,9 @@ const Music={
         if(step[0]){
           if(step[0]==='X')noiseHit(p.t,0.06,tr.vol*0.9);
           else if(step[0]==='K'){ tone(90,p.t,0.1,'sine',tr.vol*1.4,musicG,45); }
-          else tone(nf(step[0]),p.t,dur*(tr.stac||0.85),tr.wave,tr.vol,musicG);
+          else { const pan=tr.pan!==undefined?tr.pan:
+            (tr.wave==='triangle'||tr.wave==='sine'?0:(i%2?-0.22:0.22));
+            tone(nf(step[0]),p.t,dur*(tr.stac||0.85),tr.wave,tr.vol,musicG,null,pan); }
         }
         p.t+=dur; p.idx++;
         if(!song.loop && p.idx>=tr.seq.length){ p.t=Infinity; }
@@ -269,7 +309,7 @@ const SONGS={
   field:{bpm:132,loop:true,tracks:[
     {wave:'triangle',vol:0.17,stac:0.7,seq:[['C3',1],['G3',1],['C3',1],['G3',1],['A2',1],['E3',1],['A2',1],['E3',1],
       ['F2',1],['C3',1],['F2',1],['C3',1],['G2',1],['D3',1],['G2',1],['B2',1]]},
-    {wave:'square',vol:0.10,stac:0.8,seq:[['E5',1],['G5',0.5],['E5',0.5],['C5',1],['D5',1],['E5',1.5],['C5',0.5],['A4',2],
+    {wave:'pulse25',vol:0.10,stac:0.8,seq:[['E5',1],['G5',0.5],['E5',0.5],['C5',1],['D5',1],['E5',1.5],['C5',0.5],['A4',2],
       ['A4',1],['C5',0.5],['A4',0.5],['F4',1],['G4',1],['A4',1.5],['B4',0.5],['C5',2],
       ['C5',1],['E5',0.5],['C5',0.5],['A4',1],['F4',1],['G4',1.5],['A4',0.5],['G4',2],
       ['E5',1],['D5',0.5],['C5',0.5],['D5',1],['B4',1],['C5',3]]},
@@ -278,14 +318,14 @@ const SONGS={
   pub:{bpm:112,loop:true,tracks:[
     {wave:'triangle',vol:0.18,stac:0.6,seq:[['C3',1],['G3',1],['E3',1],['G3',1],['F2',1],['A3',1],['F3',1],['A3',1],
       ['G2',1],['B3',1],['G3',1],['B3',1],['C3',1],['G3',1],['C3',1],['C3',1]]},
-    {wave:'square',vol:0.09,stac:0.55,seq:[['G4',0.5],['G4',0.5],['A4',0.5],['G4',0.5],['E4',1],['C4',1],
+    {wave:'pulse25',vol:0.09,stac:0.55,seq:[['G4',0.5],['G4',0.5],['A4',0.5],['G4',0.5],['E4',1],['C4',1],
       ['F4',0.5],['F4',0.5],['G4',0.5],['F4',0.5],['D4',1],['A3',1],
       ['B3',0.5],['D4',0.5],['G4',0.5],['B4',0.5],['A4',1],['F4',1],['E4',1],['G4',1],['C5',2]]},
   ]},
   battle:{bpm:150,loop:true,tracks:[
     {wave:'sawtooth',vol:0.12,stac:0.6,seq:[['A2',0.5],['A2',0.5],['A3',0.5],['A2',0.5],['A2',0.5],['G3',0.5],['A2',0.5],['A3',0.5],
       ['F2',0.5],['F2',0.5],['F3',0.5],['F2',0.5],['G2',0.5],['G2',0.5],['G3',0.5],['G2',0.5]]},
-    {wave:'square',vol:0.10,stac:0.75,seq:[['A4',0.5],['C5',0.5],['E5',1],['A4',0.5],['C5',0.5],['E5',1],['D5',0.5],['C5',0.5],['B4',1],['E5',2],
+    {wave:'pulse12',vol:0.10,stac:0.75,seq:[['A4',0.5],['C5',0.5],['E5',1],['A4',0.5],['C5',0.5],['E5',1],['D5',0.5],['C5',0.5],['B4',1],['E5',2],
       ['F5',0.5],['E5',0.5],['D5',1],['E5',0.5],['D5',0.5],['C5',1],['B4',0.5],['C5',0.5],['D5',1],['E5',1],['B4',1]]},
     {wave:'square',vol:0.05,stac:0.9,seq:[['X',1],['X',1]]},
     {wave:'sine',vol:0.001,stac:1,seq:[['K',2],['K',2]]},
@@ -293,7 +333,7 @@ const SONGS={
   boss:{bpm:168,loop:true,tracks:[
     {wave:'sawtooth',vol:0.14,stac:0.6,seq:[['D3',0.5],['D3',0.5],['D3',0.5],['F3',0.5],['D3',0.5],['D3',0.5],['C3',0.5],['D3',0.5],
       ['Bb2',0.5],['Bb2',0.5],['Bb2',0.5],['D3',0.5],['C3',0.5],['C3',0.5],['C3',0.5],['E3',0.5]]},
-    {wave:'square',vol:0.11,stac:0.8,seq:[['D5',1],['F5',0.5],['D5',0.5],['A4',1],['D5',1],['C5',0.5],['Bb4',0.5],['A4',1],['G4',1],['A4',2],
+    {wave:'pulse12',vol:0.11,stac:0.8,seq:[['D5',1],['F5',0.5],['D5',0.5],['A4',1],['D5',1],['C5',0.5],['Bb4',0.5],['A4',1],['G4',1],['A4',2],
       ['Bb4',1],['D5',0.5],['F5',0.5],['E5',1],['C5',1],['C5',0.5],['D5',0.5],['E5',1],['F5',1],['A5',2]]},
     {wave:'square',vol:0.055,stac:0.9,seq:[['X',0.5],[null,0.5],['X',0.5],['X',0.5]]},
   ]},
@@ -304,7 +344,7 @@ const SONGS={
   ]},
   victory:{bpm:120,loop:true,tracks:[
     {wave:'triangle',vol:0.15,stac:0.7,seq:[['C3',1],['G3',1],['E3',1],['G3',1],['F3',1],['A3',1],['G3',1],['B3',1]]},
-    {wave:'square',vol:0.08,stac:0.8,seq:[['E5',1],['C5',1],['D5',1],['G4',1],['A4',1],['C5',1],['B4',1],['D5',1]]},
+    {wave:'pulse25',vol:0.08,stac:0.8,seq:[['E5',1],['C5',1],['D5',1],['G4',1],['A4',1],['C5',1],['B4',1],['D5',1]]},
   ]},
   ending:{bpm:88,loop:true,tracks:[
     {wave:'triangle',vol:0.16,stac:0.95,seq:[['F2',2],['C3',2],['F3',2],['A3',2],['C3',2],['G3',2],['C4',2],['E4',2],
@@ -320,30 +360,30 @@ const SONGS={
    Title music and stings are chiptune covers of the real Men Behaving Badly cues. */
 Object.assign(SONGS,{
   title:{bpm:228,loop:true,durMs:75789,tracks:[
-    {wave:'square',vol:0.11,stac:0.85,seq:[['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['G3',2],['D#4',1],['F3',2],['F#3',1],['G3',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['B3',2],['D4',1],['C4',3.5],[null,1],['C4',0.5],['D#4',1],['C4',0.5],['G#4',1.5],['G4',1.5],['F4',1],['D#4',0.5],[null,1],['Bb4',2],['G#4',1.5],['G4',1.5],['F4',1.5],['B4',1.5],['C5',1],['D5',1.5],['G4',0.5],[null,1],['D#5',2],['D5',1.5],['C5',1.5],['Bb4',1.5],['F4',1.5],['G4',1],['G#4',1.5],['Bb4',0.5],['Bb4',1],['C5',1.5],['D5',1.5],['D#5',1.5],['F5',1.5],['G5',9.25],[null,1.25],['C4',0.5],['D#4',1],['C4',0.5],['G#4',1.5],['G4',1.5],['F4',1],['D#4',0.5],[null,1],['Bb4',2],['G#4',1.5],['G4',1.5],['F4',1.5],['B4',1.5],['C5',1],['D5',1.5],['G4',0.5],[null,1],['D#5',2],['D5',1.5],['C5',1.5],['Bb4',1.5],['F4',1.5],['G4',1],['G#4',1.5],['Bb4',0.5],['Bb4',1],['C5',1.5],['D5',1.5],['D#5',1.5],['F5',1.5],['G5',9.25],[null,1.25],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['G3',2],['D#4',1],['F3',2],['F#3',1],['G3',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['B3',2],['D4',1],['C4',3.5],[null,1]]},
+    {wave:'pulse25',vol:0.11,stac:0.85,seq:[['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['G3',2],['D#4',1],['F3',2],['F#3',1],['G3',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['B3',2],['D4',1],['C4',3.5],[null,1],['C4',0.5],['D#4',1],['C4',0.5],['G#4',1.5],['G4',1.5],['F4',1],['D#4',0.5],[null,1],['Bb4',2],['G#4',1.5],['G4',1.5],['F4',1.5],['B4',1.5],['C5',1],['D5',1.5],['G4',0.5],[null,1],['D#5',2],['D5',1.5],['C5',1.5],['Bb4',1.5],['F4',1.5],['G4',1],['G#4',1.5],['Bb4',0.5],['Bb4',1],['C5',1.5],['D5',1.5],['D#5',1.5],['F5',1.5],['G5',9.25],[null,1.25],['C4',0.5],['D#4',1],['C4',0.5],['G#4',1.5],['G4',1.5],['F4',1],['D#4',0.5],[null,1],['Bb4',2],['G#4',1.5],['G4',1.5],['F4',1.5],['B4',1.5],['C5',1],['D5',1.5],['G4',0.5],[null,1],['D#5',2],['D5',1.5],['C5',1.5],['Bb4',1.5],['F4',1.5],['G4',1],['G#4',1.5],['Bb4',0.5],['Bb4',1],['C5',1.5],['D5',1.5],['D#5',1.5],['F5',1.5],['G5',9.25],[null,1.25],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['G3',2],['D#4',1],['F3',2],['F#3',1],['G3',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['Bb4',1.5],['G#4',1],['G4',0.5],[null,1],['C4',0.5],['D#4',1],['G4',2],['F4',1],['D#4',0.5],['F4',1.5],['D#4',1],['D4',0.5],['D#4',1.5],['D4',1],['C4',0.5],[null,1.5],['D#4',1],['G#3',2],['D#4',1],['B3',2],['D4',1],['C4',3.5],[null,1]]},
     {wave:'square',vol:0.06,stac:0.85,seq:[[null,1.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,16],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,16.5],['C4',4.5],[null,1],['D4',6.25],[null,0.25],['G4',4],[null,1.5],['G4',6.25],[null,0.25],['C4',1.5],[null,1],['F4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['D5',9.25],[null,3.25],['C4',4.5],[null,1],['D4',6.25],[null,0.25],['G4',4],[null,1.5],['G4',6.25],[null,0.25],['C4',1.5],[null,1],['F4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['G#4',1.5],[null,1.5],['D5',9.25],[null,2.75],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,16],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,4],['D#4',2],[null,1.5],['C4',1.5],[null,1.5],['F4',1.5],[null,1],['D4',0.5],[null,2.5],['D#4',2],[null,1.5],['D4',1.5],[null,1.5],['G3',1.5],[null,14.5]]},
     {wave:'triangle',vol:0.16,stac:0.8,seq:[[null,2],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',2],[null,1],['F2',2],['F#2',1],['G2',0.5],[null,3],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',0.5],['G2',1.5],[null,1],['C2',3.25],[null,3.25],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['G2',1.5],[null,1.5],['B2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['F3',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['D3',1.5],[null,1.5],['G3',1.5],['D3',1.5],['G2',1.5],[null,1.5],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['G2',1.5],[null,1.5],['B2',1.5],[null,1.5],['C3',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['F2',1.5],[null,1.5],['C3',1.5],[null,1.5],['F3',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['D3',1.5],[null,1.5],['G3',1.5],['D3',1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',2],[null,1],['F2',2],['F#2',1],['G2',0.5],[null,3],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['G#2',1.5],[null,1.5],['D#2',1.5],[null,1.5],['Bb2',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1.5],['C3',1.5],[null,1.5],['G2',1.5],[null,1],['G#2',2],[null,1],['G2',0.5],['G2',1.5],[null,1],['C2',3.25],[null,1.25]]},
   ]},
   fanfare:{bpm:228,loop:false,durMs:1974,tracks:[
-    {wave:'square',vol:0.15,stac:0.9,seq:[['C4',0.5],['D#4',1],['G4',0.5],['Bb4',1],['C5',0.5],['C5',4]]},
+    {wave:'pulse25',vol:0.15,stac:0.9,seq:[['C4',0.5],['D#4',1],['G4',0.5],['Bb4',1],['C5',0.5],['C5',4]]},
     {wave:'square',vol:0.09,stac:0.9,seq:[[null,3.5],['G4',4]]},
     {wave:'triangle',vol:0.15,stac:0.9,seq:[['C3',1.5],['G2',1.5],['Bb2',0.5],['C3',3.75],[null,0.25]]},
     {wave:'square',vol:0.09,stac:0.9,seq:[['C2',1.5],[null,2],['C2',3.75],[null,0.25]]},
   ]},
   gameover:{bpm:228,loop:false,durMs:2368,tracks:[
-    {wave:'triangle',vol:0.15,stac:0.95,seq:[['G4',1.5],['F#4',1],['F4',0.5],['E4',1],['D#4',5]]},
+    {wave:'flute',vol:0.15,stac:0.95,seq:[['G4',1.5],['F#4',1],['F4',0.5],['E4',1],['D#4',5]]},
     {wave:'sine',vol:0.1,stac:0.95,seq:[['G3',1.5],['F#3',1],['F3',0.5],['E3',1],['Bb3',5]]},
     {wave:'triangle',vol:0.14,stac:0.95,seq:[['G2',1.5],['F#2',1],['F2',0.5],['E3',1],['C3',4.75],[null,0.25]]},
     {wave:'sine',vol:0.1,stac:0.95,seq:[[null,4],['C2',4.75],[null,0.25]]},
   ]},
   battlesting:{bpm:228,loop:false,durMs:1579,tracks:[
-    {wave:'square',vol:0.13,stac:0.8,seq:[['D4',1],['D4',0.5],['D4',1],['F4',0.5],['D#4',3]]},
+    {wave:'pulse12',vol:0.13,stac:0.8,seq:[['D4',1],['D4',0.5],['D4',1],['F4',0.5],['D#4',3]]},
     {wave:'square',vol:0.08,stac:0.8,seq:[['B3',1],['B3',0.5],['B3',1],['B3',0.5],['C4',3]]},
     {wave:'sawtooth',vol:0.13,stac:0.7,seq:[['G2',1],['G2',0.5],['G2',1],['G#2',0.5],['G2',2.75],[null,0.25]]},
     {wave:'square',vol:0.08,stac:0.8,seq:[[null,3],['C2',2.75],[null,0.25]]},
   ]},
   itemget:{bpm:228,loop:false,durMs:1053,tracks:[
-    {wave:'square',vol:0.14,stac:0.9,seq:[['C5',0.5],['D#5',0.5],['G5',0.5],['A5',2.5]]},
+    {wave:'flute',vol:0.14,stac:0.9,seq:[['C5',0.5],['D#5',0.5],['G5',0.5],['A5',2.5]]},
     {wave:'square',vol:0.08,stac:0.9,seq:[[null,1.5],['G5',2.5]]},
     {wave:'triangle',vol:0.13,stac:0.9,seq:[['G3',1.5],['C4',2.25],[null,0.25]]},
     {wave:'square',vol:0.08,stac:0.9,seq:[['C3',1.5],['C3',2.25],[null,0.25]]},
@@ -399,15 +439,22 @@ function buildSprite(id,rows,pal,fx){
     const ch=rows[y][x]; if(ch==='.'||ch===' ')continue;
     g.fillStyle=pal[ch]||'#f0f'; g.fillRect(x,y,1,1);
   }
-  if(fx){ // 16-bit pass: dark outline around silhouette, top rim-light, under-shade
+  if(fx){ // 16-bit pass. fx===1: sel-out outline + auto top-light/under-shade.
+          // fx==='out': sel-out outline only (hand-shaded art).
     const img=g.getImageData(0,0,w,h), d=img.data, src=new Uint8ClampedArray(d);
     const a=(x,y)=>(x<0||x>=w||y<0||y>=h)?0:src[(y*w+x)*4+3];
+    const px=(x,y)=>(y*w+x)*4;
     for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      const i=(y*w+x)*4;
+      const i=px(x,y);
       if(!src[i+3]){
-        if(a(x-1,y)||a(x+1,y)||a(x,y-1)||a(x,y+1)){ d[i]=24;d[i+1]=20;d[i+2]=40;d[i+3]=255; }
-      }else if(!a(x,y-1)){ d[i]=Math.min(255,src[i]+38); d[i+1]=Math.min(255,src[i+1]+38); d[i+2]=Math.min(255,src[i+2]+34); }
-      else if(!a(x,y+1)){ d[i]=src[i]*0.72; d[i+1]=src[i+1]*0.72; d[i+2]=src[i+2]*0.72; }
+        // sel-out: outline takes a heavily darkened tint of the pixel it borders
+        const nb=[[0,-1],[0,1],[-1,0],[1,0]].find(([dx,dy])=>a(x+dx,y+dy));
+        if(nb){ const j=px(x+nb[0],y+nb[1]);
+          d[i]=src[j]*0.28+11; d[i+1]=src[j+1]*0.28+8; d[i+2]=src[j+2]*0.28+22; d[i+3]=255; }
+      }else if(fx===1){
+        if(!a(x,y-1)){ d[i]=Math.min(255,src[i]+38); d[i+1]=Math.min(255,src[i+1]+38); d[i+2]=Math.min(255,src[i+2]+34); }
+        else if(!a(x,y+1)){ d[i]=src[i]*0.72; d[i+1]=src[i+1]*0.72; d[i+2]=src[i+2]*0.72; }
+      }
     }
     g.putImageData(img,0,0);
   }
@@ -419,157 +466,195 @@ function drawSprB(id,x,footY,scale,flip){ // bottom-anchored draw: footY = basel
 }
 function humanSprite(id,o){
   // 16x24 FF-style person, front view, hand-shaded.
-  // o: {hair,hairC,skinC,shirtC,pantsC,dress,hat,hatC,coat}
-  // palette: o outline, h/H/i hair (base/shadow/shine), f/F skin, e eyes,
-  //          s/S/t shirt, p/P trousers-or-dress, c/C coat, a/A hat, b/B shoes
-  const pal={
-    o:'#181428', e:'#181430',
-    h:o.hairC||'#555', H:shadeHex(o.hairC||'#555',-0.38), i:shadeHex(o.hairC||'#555',0.3),
-    f:o.skinC, F:shadeHex(o.skinC,-0.22),
-    s:o.shirtC, S:shadeHex(o.shirtC,-0.32), t:shadeHex(o.shirtC,0.22),
-    p:o.pantsC, P:shadeHex(o.pantsC,-0.32),
-    b:'#31241a', B:'#4c3928',
+  // Proportions per the classic JRPG sprite grid: head ~half the sprite,
+  // eyes 2px tall / 2px apart / 1px from head sides, hairline 1px above eyes.
+  // Light source: upper-left. Shadow shades hue-shift toward purple, lights
+  // toward warm. Interior regions separate by colour (no black lines);
+  // the silhouette outline comes from buildSprite's sel-out pass.
+  // palette: i/h/H/d hair shine/base/shade/deep, f/F skin, e eyes, t/s/S shirt,
+  //          p/P trousers-or-dress, c/C/T coat, a/A/l hat, b/B shoes
+  const mix=(hex,tgt,k)=>{
+    const n=parseInt(hex.slice(1),16), m=parseInt(tgt.slice(1),16);
+    const ch=sh=>Math.round(((n>>sh)&255)*(1-k)+((m>>sh)&255)*k);
+    return '#'+((1<<24)|(ch(16)<<16)|(ch(8)<<8)|ch(0)).toString(16).slice(1);
   };
-  if(o.coat){ pal.c=o.coat; pal.C=shadeHex(o.coat,-0.28); }
-  if(o.hat){ pal.a=o.hatC||'#223'; pal.A=shadeHex(o.hatC||'#223',-0.32); }
+  const DK='#2a2050', LT='#fff0c0'; // hue-shift targets
+  const hairC=o.hairC||'#555';
+  const pal={
+    e:'#20182e',
+    i:mix(hairC,LT,0.35), h:hairC, H:mix(hairC,DK,0.3), d:mix(hairC,DK,0.55),
+    f:o.skinC, F:mix(o.skinC,DK,0.24),
+    t:mix(o.shirtC,LT,0.28), s:o.shirtC, S:mix(o.shirtC,DK,0.32),
+    p:o.pantsC, P:mix(o.pantsC,DK,0.34),
+    b:'#3a2b1e', B:mix('#3a2b1e',LT,0.3),
+  };
+  if(o.coat){ pal.c=o.coat; pal.C=mix(o.coat,DK,0.3); pal.T=mix(o.coat,LT,0.25); }
+  if(o.hat){ pal.a=o.hatC||'#223'; pal.A=mix(o.hatC||'#223',DK,0.35); pal.l=mix(o.hatC||'#223',LT,0.28); }
   const hair=o.hair||'short';
-  const HEADS={
+  // ---- crown: rows 0-5 ----
+  const CROWNS={
     short:[
-      '.....oooooo.....',
-      '....ohiiiiho....',
-      '..oohhhhhhhhoo..',
-      '..ohhhhhhhhhho..',
-      '..ohHhhhhhhHho..',
-      '..ohHffffffHho..',
-      '..ohfeffffefho..',
-      '...ofeffffefo...',
-      '...offffffffo...',
-      '....oFffffFo....',
+      '.....hhhhhh.....',
+      '....ihhhhhhh....',
+      '...iihhhhhhhH...',
+      '...ihhhhhhhhH...',
+      '...hhhhhhhhHH...',
+      '...hhhhhhhhhH...',
     ],
     long:[
-      '.....oooooo.....',
-      '....ohiiiiho....',
-      '..oohhhhhhhhoo..',
-      '..ohhhhhhhhhho..',
-      '..ohihhhhhhiho..',
-      '..ohHffffffHho..',
-      '..ohfeffffefho..',
-      '..ohfeffffefho..',
-      '..oHffffffffHo..',
-      '..oHoFffffFoHo..',
+      '.....hhhhhh.....',
+      '....ihhhhhhh....',
+      '...iihhhhhhhH...',
+      '...ihhhhhhhhH...',
+      '..ihhhhhhhhhHH..',
+      '..hhhhhhhhhhhH..',
     ],
     curly:[
-      '....oooooooo....',
-      '...ohhihhihho...',
-      '..ohhhhhhhhhho..',
-      '.ohhihhhhhhihho.',
-      '.ohhhhhhhhhhhho.',
-      '.ohHhffffffhHho.',
-      '..ohfeffffefho..',
-      '..ohfeffffefho..',
-      '..oHffffffffHo..',
-      '..oHoFffffFoHo..',
+      '....hhh.hhhh....',
+      '...ihhhhhhhhh...',
+      '..iihhHhhhHhhH..',
+      '..ihhhhhhhhhhH..',
+      '..hHhhhhhHhhHH..',
+      '..hhhhhhhhhhhH..',
     ],
     bob:[
-      '.....oooooo.....',
-      '....ohiiiiho....',
-      '..oohhhhhhhhoo..',
-      '..ohhhhhhhhhho..',
-      '..ohihhhhhhiho..',
-      '..ohhffffffhho..',
-      '..ohfeffffefho..',
-      '..ohfeffffefho..',
-      '..ohhoffffohho..',
-      '....oFffffFo....',
+      '.....hhhhhh.....',
+      '....ihhhhhhh....',
+      '...iihhhhhhhH...',
+      '..iihhhhhhhhHH..',
+      '..ihhhhhhhhhhH..',
+      '..hhhhhhhhhhhH..',
     ],
     bald:[
-      '.....oooooo.....',
-      '....offffffo....',
-      '...offffffffo...',
-      '..offffffffffo..',
-      '..oFffffffffFo..',
-      '..oHffffffffHo..',
-      '..oHfeffffefHo..',
-      '...ofeffffefo...',
-      '...offffffffo...',
-      '....oFffffFo....',
+      '......ffff......',
+      '.....ffffff.....',
+      '....ffffffff....',
+      '...fffffffffF...',
+      '...HffffffffF...',
+      '...HffffffffH...',
     ],
     slick:[
-      '.....oooooo.....',
-      '....ohhhhhho....',
-      '...ohihhhhhho...',
-      '..ohhihhhhhhho..',
-      '..ohhhhhhhhhho..',
-      '..ohHffffffHho..',
-      '..ohfeffffefho..',
-      '...ofeffffefo...',
-      '...offffffffo...',
-      '....oFffffFo....',
+      '................',
+      '....hhhhhhhh....',
+      '...hiihhhhhhH...',
+      '...hhhhhhhhhH...',
+      '...hhhhhhhhHH...',
+      '...hhhhhhhhhH...',
     ],
     bun:[
-      '......oooo......',
-      '.....ohhhho.....',
-      '...oohhhhhhoo...',
-      '..ohhhhhhhhhho..',
-      '..oHhhhhhhhHho..',
-      '..ohHffffffHho..',
-      '..ohfeffffefho..',
-      '...ofeffffefo...',
-      '...offffffffo...',
-      '....oFffffFo....',
+      '......hhhh......',
+      '.....ihhhhh.....',
+      '....hhhhhhhh....',
+      '...ihhhhhhhhH...',
+      '...hhhhhhhhhH...',
+      '...hhhhhhhhHH...',
     ],
     hat:[
-      '....oooooooo....',
-      '...oaaaaaaaao...',
-      '..oaaAaaaaAaao..',
-      '..oAAAAAAAAAAo..',
-      '.oaaaaaaaaaaaao.',
-      '..oooooooooooo..',
-      '..oFFeffffeFFo..',
-      '...ofeffffefo...',
-      '...offffffffo...',
-      '....oFffffFo....',
+      '....aaaaaaaa....',
+      '...laaaaaaaaA...',
+      '..laaaaaaaaaaA..',
+      '..aaaaaaaaaaaA..',
+      '..AAAAAAAAAAAA..',
+      '...hhhhhhhhhH...',
     ],
   };
-  const r=(HEADS[o.hat?'hat':hair]||HEADS.short).slice();
-  // neck (long styles keep hair falling past the jaw)
-  r.push(hair==='long'||hair==='curly'?'...ohoffffoho...':'.....offffo.....');
-  // torso
-  if(o.coat){
-    r.push('...occsssscco...');
-    r.push('..otcsssssscco..');
-    r.push('..occssssssCco..');
-    r.push('..ofcsssssscfo..');
-    r.push('...oCssssssCo...');
+  const r=(CROWNS[o.hat?'hat':hair]||CROWNS.short).slice();
+  // ---- face: rows 6-11 ----
+  const framed=hair==='long'||hair==='curly'||hair==='bob'; // hair beside the face
+  if(o.hat||hair==='bald'){
+    r.push(o.hat?'...hFFffffFFh...':'...HfffffffFH...');
+    r.push('...ffeeffeefF...');
+    r.push('...ffFeffFefF...');
+    r.push('....fffffffF....');
+    r.push('....ffFfffFF....');
+    r.push('.....FffffF.....');
+  }else if(framed){
+    r.push('..hhHffffffFHh..');
+    r.push('..hhfeeffeefhh..');
+    r.push('..hhfFeffFefhh..');
+    r.push('..hHffffffffHh..');
+    r.push('..hHfFffffFfHh..');
+    r.push(hair==='bob'?'...hhFffffFhh...':'..hd.FffffF.dh..');
   }else{
-    r.push('...osssssssso...');
-    r.push('..otsssssssSso..');
-    r.push('..osssssssssSo..');
-    r.push('..ofssssssssfo..');
-    r.push('...oSssssssSo...');
+    r.push('...hHffffffFh...');
+    r.push('...hfeeffeefh...');
+    r.push('....fFeffFef....');
+    r.push('....fffffffF....');
+    r.push('....ffFfffFF....');
+    r.push('.....FffffF.....');
   }
-  if(o.dress){
-    r.push('...oppppppppo...');
-    r.push('..oppppppppppo..');
-    r.push('..opPppppppPpo..');
-    r.push('.oppppppppppppo.');
-    r.push('.opppPppppPpppo.');
-    r.push('.oPPPPPPPPPPPPo.');
-    r.push('...off....ffo...');
-    r.push('...obbo..obbo...');
+  // fringe: hair drops over the forehead, per style (row 6 = hairline row)
+  const FRINGE={
+    short:'...hhhhHhhhhH...',
+    long:'..hhHhffffhHHh..',
+    curly:'..hhhHhffhHhhh..',
+    bob:'..hhhhHhhhHhhh..',
+  };
+  if(!o.hat&&FRINGE[hair])r[6]=FRINGE[hair];
+  // ---- neck: row 12 ----
+  r.push(framed&&hair!=='bob'?'..h..FffffF..H..':'.....FffffF.....');
+  // ---- torso: rows 13-17 ----
+  if(o.coat){
+    r.push('..TTccssssccCC..');
+    r.push('..TcccsssscccC..');
+    r.push('..TcccsssscccC..');
+    r.push('..fcccsssscccf..');
+    r.push('...cccssssccC...');
   }else{
-    r.push('...oppppppppo...');
-    r.push('...oPppppppPo...');
-    r.push('...oppo..oppo...');
-    r.push('...oppo..oppo...');
-    r.push('...oPpo..oPpo...');
-    r.push('...oppo..oppo...');
-    r.push('..obBo....obBo..');
-    r.push('..oooo....oooo..');
+    r.push('..ttssSSSSssSS..');
+    r.push('..tsSssssssSsS..');
+    r.push('..tsSssssssSsS..');
+    r.push('..fsSssssssSsf..');
+    r.push(o.dress?'....ssssssSS....':'...sssssssssS...');
+  }
+  if(hair==='long'||hair==='curly'){ // hair spills over the shoulders
+    r[13]='..hh'+r[13].slice(4,12)+'HH..';
+    r[14]='..h'+r[14].slice(3,13)+'H..';
+  }
+  // ---- legs / dress: rows 18-23 ----
+  if(o.dress){
+    r.push('...pppppppppP...');
+    r.push('..ppppppppppPP..');
+    r.push('..ppppppppppPP..');
+    r.push('.ppppppppppppPP.');
+    r.push('.PPPPPPPPPPPPPP.');
+    r.push('....bb....bb....');
+  }else{
+    r.push('...pppppppppP...');
+    r.push('...pppppppppP...');
+    r.push('....ppp..ppP....');
+    r.push('....ppp..ppP....');
+    r.push('....Bbb..Bbb....');
+    r.push('...bbbb..bbbb...');
   }
   for(let i=0;i<r.length;i++)if(r[i].length!==16)throw new Error('humanSprite '+id+' row '+i+' len '+r[i].length);
   if(r.length!==24)throw new Error('humanSprite '+id+' rows '+r.length);
-  buildSprite(id,r,pal);
+  buildSprite(id,r,pal,'out');
+  // two step frames for the classic 4-phase walk (stand, step, stand, other step)
+  const w1=r.slice(), w2=r.slice();
+  if(o.dress){
+    w1[23]='....bb..........'; w2[23]='..........bb....';
+  }else{
+    w1[23]='...bbbb.........'; w2[23]='.........bbbb...';
+  }
+  buildSprite(id+'_w1',w1,pal,'out');
+  buildSprite(id+'_w2',w2,pal,'out');
+}
+function whiteGhost(id,x,y,scale,flip,alpha){ // white silhouette overlay (damage flash)
+  const s=SPR[id]; if(!s)return;
+  if(!whiteGhost.c){ whiteGhost.c=document.createElement('canvas'); }
+  const c=whiteGhost.c; c.width=s.width; c.height=s.height;
+  const g=c.getContext('2d');
+  g.drawImage(s,0,0);
+  g.globalCompositeOperation='source-in';
+  g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height);
+  g.globalCompositeOperation='source-over';
+  ctx.save(); ctx.globalAlpha=alpha;
+  scale=scale||1;
+  if(flip){ ctx.translate(Math.round(x)+s.width*scale,Math.round(y)); ctx.scale(-scale,scale); }
+  else { ctx.translate(Math.round(x),Math.round(y)); ctx.scale(scale,scale); }
+  ctx.drawImage(c,0,0);
+  ctx.restore();
 }
 humanSprite('gary',{hair:'short',hairC:'#5a3a20',skinC:'#f0c090',shirtC:'#d8d8e8',pantsC:'#404058'});
 humanSprite('tony',{hair:'long',hairC:'#241810',skinC:'#e8b888',shirtC:'#802828',pantsC:'#3858a0'});
@@ -1425,8 +1510,11 @@ function drawField(){
     const bob=((Date.now()>>9)%2)?0:-1;
     drawSpr(n.spr,n.x*TS-cx,n.y*TS-12+bob-cy); }}); });
   ents.push({y:py,f:()=>{
-    const bob=G.moving&&((Date.now()>>7)%2)?-1:0;
-    drawSpr(G.party[0]?G.chars[G.party[0]].spr:'gary',px-cx,py-12+bob-cy,1,G.dir==='lf');
+    const spr0=G.party[0]?G.chars[G.party[0]].spr:'gary';
+    const ph=G.moving?((Date.now()>>7)&3):0; // stand, step, stand, other step
+    const spr=ph===1&&SPR[spr0+'_w1']?spr0+'_w1':ph===3&&SPR[spr0+'_w2']?spr0+'_w2':spr0;
+    const bob=(ph===1||ph===3)?-1:0;
+    drawSpr(spr,px-cx,py-12+bob-cy,1,G.dir==='lf');
   }});
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.f());
   if(G.mapMsgT>0&&!busy){
@@ -1783,6 +1871,11 @@ async function battleMsg(t,ms){
   B.msg=t; await sleep(ms||850); B.msg=null;
 }
 function popup(x,y,txt,color){ B.popups.push({x,y,txt,color:color||'#fff',t:0}); }
+async function lunge(u,dist){ // smooth step toward the foe and back
+  for(let k=0;k<4;k++){ u.ox+=dist/4; await waitFrame(); }
+  for(let k=0;k<4;k++){ u.ox-=dist/4; await waitFrame(); }
+  u.ox=0;
+}
 async function battleLoop(){
   await battleMsg(B.enemies.length>1?'Trouble, in plural!':B.enemies[0].name+' squares up!',900);
   while(true){
@@ -1830,7 +1923,7 @@ async function hitPlayer(p,raw,name){
   if(p.defend)d=Math.floor(d/2);
   if(p.status.defup)d=Math.floor(d*0.75);
   d=Math.max(1,d);
-  p.c.hp=Math.max(0,p.c.hp-d);
+  p.c.hp=Math.max(0,p.c.hp-d); p.flash=6;
   SFX.hit(); B.shake=8; popup(p.x+10,p.y+4,d,'#fff');
   if(p.status.sleep&&Math.random()<0.7)delete p.status.sleep;
   if(p.c.hp<=0){ popup(p.x+10,p.y-6,'gone to bed','#f08080'); }
@@ -1844,7 +1937,7 @@ async function enemyTurn(e){
   const atkMult=e.status.atkdn?0.6:1;
   const nm=act.name?e.name+': '+act.name:e.name+' attacks!';
   B.msg=nm;
-  e.ox=10; await sleep(240); e.ox=0;
+  await lunge(e,12);
   const targets=act.all?aliveP():[aliveP()[RI(aliveP().length)]];
   for(const p of targets){
     const raw=(e.atk*2.1*act.pow*atkMult)-pDef(p);
@@ -1870,21 +1963,21 @@ async function playerTurn(p){
       p.despUsed=true;
       await battleMsg('★ '+c.desp.name+' ★',1100);
       SFX.crit(); B.shake=12;
-      p.ox=-14; await sleep(200); p.ox=0;
+      await lunge(p,-16);
       for(const e of aliveE()){
         const d=variance((c.str+wAtk(c))*2*c.desp.pow+c.lvl*2-e.def);
-        e.hp=Math.max(0,e.hp-d); popup(e.x+14,e.y+6,d,'#ffe080');
+        e.hp=Math.max(0,e.hp-d); e.flash=6; popup(e.x+14,e.y+6,d,'#ffe080');
         if(e.hp<=0)await killEnemy(e);
       }
       await sleep(400); B.activeP=null; return true;
     }
-    p.ox=-12; await sleep(180); p.ox=0;
+    await lunge(p,-12);
     const atkMult=p.status.atkdn?0.6:1;
     let d=(c.str+wAtk(c))*2*atkMult+c.lvl*2-t.def*1.5;
     let crit=Math.random()<1/16;
     d=variance(Math.max(2,d)); if(crit){ d*=2; SFX.crit(); B.shake=10; await battleMsg('CRITICAL!',420); }
     else SFX.hit();
-    t.hp=Math.max(0,t.hp-d); popup(t.x+14,t.y+6,d,crit?'#ffe080':'#fff');
+    t.hp=Math.max(0,t.hp-d); t.flash=6; popup(t.x+14,t.y+6,d,crit?'#ffe080':'#fff');
     if(t.status.sleep&&Math.random()<0.8){ delete t.status.sleep; }
     if(t.hp<=0)await killEnemy(t);
     await sleep(380); B.activeP=null; return true;
@@ -1903,9 +1996,9 @@ async function playerTurn(p){
       const roll=Math.random();
       if(roll<0.35){ SFX.crit(); B.shake=12; await battleMsg('IT ACTUALLY WORKS!',700);
         for(const e of aliveE()){ const d=variance(c.mag*5+c.lvl*3);
-          e.hp=Math.max(0,e.hp-d); popup(e.x+14,e.y+6,d,'#ffe080'); if(e.hp<=0)await killEnemy(e); } }
+          e.hp=Math.max(0,e.hp-d); e.flash=6; popup(e.x+14,e.y+6,d,'#ffe080'); if(e.hp<=0)await killEnemy(e); } }
       else if(roll<0.6){ const t=aliveE()[RI(aliveE().length)]; SFX.magic();
-        const d=variance(c.mag*7+c.lvl*4); t.hp=Math.max(0,t.hp-d);
+        const d=variance(c.mag*7+c.lvl*4); t.hp=Math.max(0,t.hp-d); t.flash=6;
         popup(t.x+14,t.y+6,d,'#ffe080'); if(t.hp<=0)await killEnemy(t); }
       else if(roll<0.85){ SFX.bad(); await battleMsg('It backfires. Of course it backfires.',800);
         const d=Math.max(2,Math.floor(c.maxhp*0.12)); c.hp=Math.max(1,c.hp-d); popup(p.x+10,p.y,d,'#f08080'); }
@@ -1933,7 +2026,7 @@ async function playerTurn(p){
     const mult=tgts.length>1?0.7:1;
     for(const t of tgts){
       const d=variance((s.pow*(c.mag*2.2+c.lvl*2)-t.def*0.8)*mult);
-      t.hp=Math.max(0,t.hp-Math.max(2,d)); popup(t.x+14,t.y+6,Math.max(2,d),'#c0d0ff');
+      t.hp=Math.max(0,t.hp-Math.max(2,d)); t.flash=6; popup(t.x+14,t.y+6,Math.max(2,d),'#c0d0ff');
       if(s.status&&t.hp>0&&Math.random()<(s.statusCh||0.5)&&!t.boss){
         t.status[s.status]=true; popup(t.x+14,t.y-6,s.status,'#e0a0f0'); }
       if(t.hp<=0)await killEnemy(t);
@@ -2001,12 +2094,27 @@ async function pickAlly(deadOnly){
   overlays.splice(overlays.indexOf(o),1); busy--;
   return res;
 }
+const WINLINES=[
+  'VICTORY! The lads strike unearned poses.',
+  'Sorted. Nobody mention how close that was.',
+  'VICTORY! Right — whose round is it?',
+  'The lads win! Dignity remains at large.',
+  'Job done. Kebabs all round.',
+  'VICTORY! That will impress precisely no one.',
+  'Won! Gary immediately takes full credit.',
+  'VICTORY! Tony celebrates with air guitar.',
+  'Triumph, against all reasonable odds.',
+  'Done. Let us never speak of the technique.',
+  'VICTORY! A win for lager-based tactics.',
+  'The opposition has gone home in a huff.',
+];
 async function victory(){
   G.wins++;
   Music.stop(); Music.play('fanfare');
   B.players.forEach(p=>{ p.status={}; });
+  B.anim.winAt=B.anim.t||1;
   const exp=B.enemies.reduce((s,e)=>s+e.exp,0), quid=B.enemies.reduce((s,e)=>s+e.quid,0);
-  await battleMsg('VICTORY! The lads strike unearned poses.',2800);
+  await battleMsg(WINLINES[RI(WINLINES.length)],2800);
   Music.play('victory');
   G.quid+=quid;
   await say(['Got '+exp+' exp and '+quid+' quid!']);
@@ -2032,10 +2140,14 @@ function drawBattle(){
   if(B.shake>0)B.shake--;
   ctx.save(); ctx.translate(sh,0);
   BATTLEBG[B.bbg]();
+  B.anim.t=(B.anim.t||0)+1; const bt=B.anim.t;
   for(const e of B.enemies){
     if(e.dead&&e.fade<=0)continue;
     ctx.globalAlpha=e.fade;
-    drawSprB(e.spr,e.x+e.ox,e.y+(e.big?52:32),e.sc);
+    const foot=e.y+(e.big?52:32)+Math.round((1-e.fade)*5); // sink as they dissolve
+    drawSprB(e.spr,e.x+e.ox,foot,e.sc);
+    if(e.flash>0){ e.flash--;
+      whiteGhost(e.spr,e.x+e.ox,foot-SPR[e.spr].height*e.sc,e.sc,false,Math.min(1,e.flash/5)*0.85); }
     ctx.globalAlpha=1;
     if(e.status.sleep)text('z',e.x+SPR[e.spr].width*e.sc-4,e.y-6,'#a0c0ff');
     if(e.status.poison)text('psn',e.x-2,e.y-6,'#b0f070');
@@ -2045,7 +2157,15 @@ function drawBattle(){
     if(c.hp<=0){ ctx.save(); ctx.translate(p.x+p.ox+4,p.y+30); ctx.rotate(-Math.PI/2);
       ctx.globalAlpha=0.8; drawSpr(c.spr,0,0,2); ctx.restore(); ctx.globalAlpha=1; continue; }
     const crouch=c.hp<c.maxhp*0.25?2:0;
-    drawSprB(c.spr,p.x+p.ox,p.y+32+crouch,2,true);
+    const breath=(!crouch&&((bt>>5)&1))?1:0;       // slow idle breathing
+    const step=B.activeP===p?-5:0;                 // step forward when acting
+    let hop=0;                                     // victory hops
+    if(B.anim.winAt){ const wt=bt-B.anim.winAt;
+      if(wt<44)hop=-Math.round(Math.abs(Math.sin(wt*0.22))*5); }
+    const foot=p.y+32+crouch+breath+hop;
+    drawSprB(c.spr,p.x+p.ox+step,foot,2,true);
+    if(p.flash>0){ p.flash--;
+      whiteGhost(c.spr,p.x+p.ox+step,foot-SPR[c.spr].height*2,2,true,Math.min(1,p.flash/5)*0.85); }
     if(p.status.sleep)text('z',p.x-6,p.y-4,'#a0c0ff');
     if(p.status.poison)text('psn',p.x+22,p.y-4,'#b0f070');
     if(B.activeP===p)cursorHand(p.x-12,p.y+10);
