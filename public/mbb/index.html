@@ -885,10 +885,41 @@ mkTile('counter',g=>{ fr(g,'#d8d8dc',0,0,16,16); fr(g,'#c0c0c8',0,0,16,3); fr(g,
   fr(g,'#888890',4,5,8,6); });
 mkTile('fridge',g=>{ fr(g,'#e0e0e8',0,0,16,16); fr(g,'#c8c8d0',1,1,14,14); fr(g,'#a8a8b0',3,4,3,1);
   fr(g,'#a8a8b0',3,10,3,1); fr(g,'#b8b8c0',1,7,14,1); });
-mkTile('table',g=>{ fr(g,'#6a7a52',0,0,16,16); fr(g,'#8a6438',1,3,14,10); fr(g,'#a8824f',2,4,12,8);
-  fr(g,'#6a4c28',2,13,2,3); fr(g,'#6a4c28',12,13,2,3); });
-mkTile('pubtable',g=>{ fr(g,'#7a5030',0,0,16,16); fr(g,'#583828',1,3,14,10); fr(g,'#6a4430',2,4,12,8);
-  fr(g,'#c89040',6,6,4,3); });
+mkTile('table',g=>{ fr(g,'#6a7a52',0,0,16,16);      // kitchen table, top-down
+  fr(g,'#57604a',2,14,12,2);                          // floor shadow
+  fr(g,'#3a2a18',1,2,14,11);                          // outline mass
+  fr(g,'#b08a56',2,3,12,2);                           // top rim catches the light
+  fr(g,'#96703e',2,5,12,5);                           // table top
+  fr(g,'#a37c48',3,6,10,1); fr(g,'#a37c48',3,8,10,1); // grain
+  fr(g,'#6e4e28',2,10,12,2);                          // front edge
+  fr(g,'#4c3620',2,12,2,3); fr(g,'#4c3620',12,12,2,3);// legs
+  fr(g,'#5c4228',2,12,2,1); fr(g,'#5c4228',12,12,2,1); });
+// 2x2 dining table: corner tiles that join into one piece of furniture
+mkTile('tableTL',g=>{ fr(g,'#6a7a52',0,0,16,16);
+  fr(g,'#3a2a18',2,2,14,14); fr(g,'#b08a56',3,3,13,2);
+  fr(g,'#96703e',3,5,13,11); fr(g,'#a37c48',4,7,12,1); fr(g,'#a37c48',4,10,12,1); });
+mkTile('tableTR',g=>{ fr(g,'#6a7a52',0,0,16,16);
+  fr(g,'#3a2a18',0,2,14,14); fr(g,'#b08a56',0,3,13,2);
+  fr(g,'#96703e',0,5,13,11); fr(g,'#a37c48',0,7,12,1); fr(g,'#a37c48',0,10,12,1); });
+mkTile('tableBL',g=>{ fr(g,'#6a7a52',0,0,16,16);
+  fr(g,'#57604a',3,14,12,2); fr(g,'#3a2a18',2,0,14,14);
+  fr(g,'#96703e',3,0,13,8); fr(g,'#a37c48',4,2,12,1);
+  fr(g,'#6e4e28',3,8,13,3); fr(g,'#4c3620',3,11,2,3); });
+mkTile('tableBR',g=>{ fr(g,'#6a7a52',0,0,16,16);
+  fr(g,'#57604a',1,14,12,2); fr(g,'#3a2a18',0,0,14,14);
+  fr(g,'#96703e',0,0,13,8); fr(g,'#a37c48',0,2,12,1);
+  fr(g,'#6e4e28',0,8,13,3); fr(g,'#4c3620',11,11,2,3); });
+mkTile('pubtable',g=>{ fr(g,'#7a5030',0,0,16,16);   // round pub table + pint
+  fr(g,'#5e3c20',4,13,8,2);                           // floor shadow
+  fr(g,'#2c1c10',3,2,10,10);                          // outline mass (rounded below)
+  fr(g,'#7a5030',3,2,1,1); fr(g,'#7a5030',12,2,1,1);  // knock off corners
+  fr(g,'#7a5030',3,11,1,1); fr(g,'#7a5030',12,11,1,1);
+  fr(g,'#8a5c34',4,3,8,1); fr(g,'#7e5027',4,4,8,1);   // top rim light
+  fr(g,'#6a4020',4,5,8,4);                            // table top
+  fr(g,'#4e2e16',4,9,8,2);                            // curved underside
+  fr(g,'#38220f',6,11,4,2);                           // pedestal
+  fr(g,'#f2ecd8',7,3,2,1); fr(g,'#d99a2b',7,4,2,3);   // pint: foam + lager
+  fr(g,'#b87d1e',8,4,1,3); });
 mkTile('tv',g=>{ fr(g,'#6a7a52',0,0,16,16); fr(g,'#383840',1,2,14,12); fr(g,'#68a8c8',3,4,10,8);
   fr(g,'#88c8e8',4,5,4,3); fr(g,'#282830',5,14,6,2); });
 mkTile('bar',g=>{ fr(g,'#583828',0,0,16,16); fr(g,'#6a4430',0,0,16,4); fr(g,'#7a5038',0,1,16,2);
@@ -1116,6 +1147,8 @@ const LEGEND={
   'z':{t:'booze',s:1},'B':{t:'bar',s:1,through:1},'o':{t:'stool',s:1},'j':{t:'jukebox',s:1},
   'd':{t:'dart',s:1},'e':{t:'desk',s:1,through:1},'p':{t:'plant',s:1},'A':{t:'alarmpanel',s:1},
   '$':{t:'safe',s:1},'r':{t:'rug'},'O':{t:'door'},'f':{t:'pubfloor'},'x':{t:'office'},
+  'q':{t:'pubtable',s:1},
+  '1':{t:'tableTL',s:1},'2':{t:'tableTR',s:1},'3':{t:'tableBL',s:1},'4':{t:'tableBR',s:1},
 };
 const MAPS={
 flat:{
@@ -1125,8 +1158,8 @@ flat:{
   '#t........Fk#',
   '#..SS.......#',
   '#...........#',
-  '#..TT....C..#',
-  '#..TT.......#',
+  '#..12....C..#',
+  '#..34.......#',
   '#c..........#',
   '#...........#',
   '#...........#',
@@ -1176,9 +1209,9 @@ pub:{
   '#BBBBBBB#ffjff#',
   '#fofffofffffff#',
   '#fffffffffffff#',
-  '#fftffftffftff#',
+  '#ffqfffqfffqff#',
   '#fffffffffffff#',
-  '#fftffftffffff#',
+  '#ffqfffqffffff#',
   '#fffffffffffff#',
   '#######D#######'],
   doors:[{x:7,y:9,to:'street1',tx:24,ty:2,dir:'dn'}],
