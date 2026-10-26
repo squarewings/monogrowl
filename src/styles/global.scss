@@ -157,6 +157,32 @@ footer.site-foot {
   }
 }
 
+// ── STAGGERED ENTRANCE (scroll-driven, no JS) ────────
+// Platform tiles and release cards fade + lift in as they scroll into
+// view, each a beat after the previous. `backwards` fill only, so once
+// the range completes the element's own :hover transform works again.
+// The motion toggle and reduced-motion blocks below cancel it entirely.
+@keyframes k-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .k-follow-grid > a,
+    .k-rel-grid > .k-rel-card {
+      animation: k-rise linear backwards;
+      animation-timeline: view();
+    }
+    @for $i from 1 through 6 {
+      .k-follow-grid > a:nth-child(#{$i}),
+      .k-rel-grid > .k-rel-card:nth-child(#{$i}) {
+        animation-range: entry ($i - 1) * 8% entry 45% + ($i - 1) * 8%;
+      }
+    }
+  }
+}
+
 // ── MOTION TOGGLE (respected by every component) ─────
 body[data-motion="off"] * {
   animation: none !important;

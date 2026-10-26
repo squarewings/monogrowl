@@ -61,9 +61,12 @@ const { title, cat, image, listenUrl, tracks } = Astro.props;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 60%);
     transition: transform .45s cubic-bezier(.2, .8, .2, 1), border-color .3s;
 
-    &:hover {
-      transform: translateY(-4px);
-      border-color: color-mix(in oklab, var(--accent) 80%, transparent);
+    // Pointer devices only — avoids the card staying lifted after a tap on touch.
+    @media (hover: hover) {
+      &:hover {
+        transform: translateY(-4px);
+        border-color: color-mix(in oklab, var(--accent) 80%, transparent);
+      }
     }
 
     .cov {
@@ -135,10 +138,12 @@ const { title, cat, image, listenUrl, tracks } = Astro.props;
       color: #e0e0dc;
       transition: all .3s;
 
-      &:hover {
-        background: var(--accent);
-        color: #000;
-        border-color: var(--accent);
+      @media (hover: hover) {
+        &:hover {
+          background: var(--accent);
+          color: #000;
+          border-color: var(--accent);
+        }
       }
     }
   }
